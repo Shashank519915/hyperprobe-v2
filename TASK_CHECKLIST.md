@@ -15,8 +15,8 @@ Plan reference: `notes/IMPLEMENTATION_PLAN.md` · Design: `notes/ARCHITECTURE_V2
 |----|--------|-------|------|--------|
 | PR-01 | `chore/repo-scaffold` | 1.1–1.4 | 4/4 | ✅ merged |
 | PR-02 | `feat/target-core-layers` | 2.1–2.3 | 3/3 | ✅ merged |
-| PR-03 | `feat/target-http-server` | 2.4–2.6 | 3/3 | ✅ ready for PR |
-| PR-04 | `feat/agent-data-models` | 4.1–4.2 | 0/2 | ⬜ todo |
+| PR-03 | `feat/target-http-server` | 2.4–2.6 | 3/3 | ✅ merged |
+| PR-04 | `feat/agent-data-models` | 4.1–4.2 | 1/2 | 🔄 in progress |
 | PR-05 | `feat/agent-breakpoint-registry` | 5.1–5.5 | 0/5 | ⬜ todo |
 | PR-06 | `feat/agent-safe-serializer` | 7.1–7.2 | 0/2 | ⬜ todo |
 | PR-07 | `feat/agent-capture-worker` | 6.1–6.3 | 0/3 | ⬜ todo |
@@ -542,7 +542,7 @@ feat(target): add ThreadingHTTPServer on :8080
 
 | Field | Detail |
 |-------|--------|
-| **Status** | ✅ done (commit pending) |
+| **Status** | ✅ done |
 | **Branch** | `feat/target-http-server` |
 | **Requirements** | R1, R3 |
 | **Files** | `tests/test_target_http.py`, `scripts/check_target_purity.sh` |
@@ -553,20 +553,29 @@ feat(target): add ThreadingHTTPServer on :8080
 - `tests/test_target_http.py` — 7 HTTP integration tests (no agent, ephemeral port)
 - Covers: add/sub/mul/div, 400 errors, 404, no agent imports in `target/`
 - `scripts/check_target_purity.sh` — expanded: agent, logging, print, trace/settrace/opentelemetry
-- `notes/DEMO_COMMANDS.md` — local command/output log for human README (gitignored)
+- `notes/DEMO_COMMANDS.md` — local setup/command reference for human README (gitignored)
 
 **Verification:**
 
 ```text
 pytest tests/ -q → 18 passed
 bash scripts/check_target_purity.sh → OK (CI/Linux)
+Merged via PR #3; CI green
 ```
 
 **Placeholder commit:** `test(target): HTTP integration test without agent`
 
-**Actual commit hash:**
+**Actual commit hash:** `2b025a9` (merged via PR #3, merge `fde52e7`)
 
 **Actual commit message:**
+
+```text
+test(target): HTTP integration test without agent
+
+- Add tests/test_target_http.py with 7 HTTP integration cases
+- Expand check_target_purity.sh for trace/settrace/opentelemetry hooks
+- Update TASK_CHECKLIST and CONTEXT: PR-03 complete, PR draft ready
+```
 
 **Notes:**
 
@@ -575,8 +584,8 @@ bash scripts/check_target_purity.sh → OK (CI/Linux)
 **PR-03 merge checklist:**
 
 - [x] All tasks 2.4–2.6 ✅
-- [ ] CI green on PR
-- [ ] PR merged to `main`
+- [x] CI green on PR
+- [x] PR merged to `main` (PR #3, merge `fde52e7`)
 
 **Pull request draft** *(copy to GitHub after task 2.6 push):*
 
@@ -627,11 +636,35 @@ Depends on PR-02 merged. After merge, can start PR-04 (`feat/agent-data-models`)
 
 ### Task 4.1 — Breakpoint models
 
-| Status | ⬜ todo | **Files** | `agent/models.py` (Breakpoint, CaptureMode) | **Req** | R10, R16 |
+| Field | Detail |
+|-------|--------|
+| **Status** | ✅ done (commit pending) |
+| **Branch** | `feat/agent-data-models` |
+| **Requirements** | R10, R16 |
+| **Files** | `agent/models.py` |
+| **Done when** | Matches ARCHITECTURE_V2 §5.6 |
+
+**Delivered:**
+
+- `BreakpointType` — `function`, `method`, `file_line`
+- `CaptureMode` — `ENTRY`, `RETURN`, `BOTH`
+- `Breakpoint` dataclass — `id`, `type`, `capture_mode`, `value`, `file`, `line`
+- No `enabled` field; file_line uses `file`+`line` (not `value`)
+
+**Verification:**
+
+```text
+pytest tests/ -q → 18 passed (no agent tests yet)
+Models importable: from agent.models import Breakpoint, BreakpointType, CaptureMode
+```
 
 **Placeholder commit:** `feat(agent): add Breakpoint and CaptureMode models`
 
-**Actual commit hash:** · **Actual commit message:** · **Verification:** · **Notes:**
+**Actual commit hash:**
+
+**Actual commit message:**
+
+**Notes:** No imports from `target/` in agent models.
 
 ---
 
@@ -642,6 +675,22 @@ Depends on PR-02 merged. After merge, can start PR-04 (`feat/agent-data-models`)
 **Placeholder commit:** `feat(agent): add RawCapture, Snapshot, StackFrame models`
 
 **Actual commit hash:** · **Actual commit message:** · **Verification:** · **Notes:**
+
+---
+
+**PR-04 merge checklist:**
+
+- [ ] All tasks 4.1–4.2 ✅
+- [ ] CI green on PR
+- [ ] PR merged to `main`
+
+**Pull request draft** *(fill after task 4.2 — then open PR on GitHub):*
+
+| Field | Value |
+|-------|--------|
+| **When** | After task **4.2** is committed and pushed |
+| **Base ← Compare** | `main` ← `feat/agent-data-models` |
+| **Title** | `feat(agent): data models (PR-04)` |
 
 ---
 
