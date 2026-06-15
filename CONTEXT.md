@@ -73,12 +73,23 @@ hyperprobe/
 
 Append newest entries at the **top**.
 
+### 2026-06-16 — Task 7.2 complete (local)
+
+- Hardened `agent/serializer.py` — per-item dict/list guards, bad-key fallback
+- Extended `tests/test_serializer.py` — 8 pathological cases (15 total); pytest 53 passed
+- Updated `TASK_CHECKLIST.md`, `CONTEXT.md`, `notes/DEMO_COMMANDS.md`
+- Next: commit 7.2, push, open PR-06
+
+### 2026-06-16 — Task 7.1 committed + pushed
+
+- Commit `3517cac` on `feat/agent-safe-serializer`; CI green
+- `SafeSerializer` + 7 baseline tests (45 pytest total)
+
 ### 2026-06-16 — Task 7.1 complete (local)
 
 - Added `agent/serializer.py` — SafeSerializer with type fallbacks
 - Added `tests/test_serializer.py` — 7 tests; pytest 45 passed
 - Updated `notes/DEMO_COMMANDS.md` (PR-05/06 test commands)
-- Next: commit 7.1, then task 7.2
 
 ### 2026-06-16 — PR-05 merged
 
@@ -265,7 +276,7 @@ Append newest entries at the **top**.
 
 ## Git workflow
 
-PR-05 merged to `main`. Current work: **PR-06** on `feat/agent-safe-serializer`.
+PR-05 merged to `main`. **PR-06** on `feat/agent-safe-serializer` — tasks 7.1–7.2 done locally; open PR after 7.2 commit + push.
 
 After each PR merges: `git checkout main` → `git pull origin main` → new feature branch.
 

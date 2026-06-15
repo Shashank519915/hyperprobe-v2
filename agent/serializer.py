@@ -51,19 +51,31 @@ class SafeSerializer:
 
         if isinstance(value, dict):
             _seen.add(obj_id)
-            return {
-                str(key): self.serialize(
-                    item, _depth=_depth + 1, _seen=_seen
-                )
-                for key, item in value.items()
-            }
+            result: dict[str, Any] = {}
+            for key, item in value.items():
+                try:
+                    safe_key = str(key)
+                except Exception:
+                    safe_key = f"<bad_key {type(key).__qualname__}>"
+                try:
+                    result[safe_key] = self.serialize(
+                        item, _depth=_depth + 1, _seen=_seen
+                    )
+                except Exception:
+                    result[safe_key] = "<serialization_failed>"
+            return result
 
         if isinstance(value, (list, tuple, set, frozenset)):
             _seen.add(obj_id)
-            return [
-                self.serialize(item, _depth=_depth + 1, _seen=_seen)
-                for item in value
-            ]
+            items: list[Any] = []
+            for item in value:
+                try:
+                    items.append(
+                        self.serialize(item, _depth=_depth + 1, _seen=_seen)
+                    )
+                except Exception:
+                    items.append("<serialization_failed>")
+            return items
 
         _seen.add(obj_id)
         try:
