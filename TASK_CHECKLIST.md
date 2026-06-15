@@ -17,8 +17,8 @@ Plan reference: `notes/IMPLEMENTATION_PLAN.md` · Design: `notes/ARCHITECTURE_V2
 | PR-02 | `feat/target-core-layers` | 2.1–2.3 | 3/3 | ✅ merged |
 | PR-03 | `feat/target-http-server` | 2.4–2.6 | 3/3 | ✅ merged |
 | PR-04 | `feat/agent-data-models` | 4.1–4.2 | 2/2 | ✅ merged |
-| PR-05 | `feat/agent-breakpoint-registry` | 5.1–5.5 | 5/5 | ✅ ready for PR |
-| PR-06 | `feat/agent-safe-serializer` | 7.1–7.2 | 0/2 | ⬜ todo |
+| PR-05 | `feat/agent-breakpoint-registry` | 5.1–5.5 | 5/5 | ✅ merged |
+| PR-06 | `feat/agent-safe-serializer` | 7.1–7.2 | 2/2 | ✅ ready for PR |
 | PR-07 | `feat/agent-capture-worker` | 6.1–6.3 | 0/3 | ⬜ todo |
 | PR-08 | `feat/agent-tracer` | 8.1–8.6 | 0/6 | ⬜ todo |
 | PR-09 | `feat/agent-control-api` | 9.1–9.3 | 0/3 | ⬜ todo |
@@ -941,7 +941,7 @@ feat(agent): support multiple BPs per name/line
 
 | Field | Detail |
 |-------|--------|
-| **Status** | ✅ done (commit pending) |
+| **Status** | ✅ done |
 | **Branch** | `feat/agent-breakpoint-registry` |
 | **Requirements** | R29 |
 | **Files** | `breakpoints.yaml`, `agent/breakpoints.py`, `tests/test_breakpoints_yaml.py`, `requirements.txt` |
@@ -959,13 +959,23 @@ feat(agent): support multiple BPs per name/line
 ```text
 pytest tests/test_breakpoints_yaml.py -q → 4 passed
 pytest tests/ -q → 38 passed
+Merged via PR #5 (merge 4046196); CI green
 ```
 
 **Placeholder commit:** `feat(agent): load breakpoints.yaml seed config`
 
-**Actual commit hash:**
+**Actual commit hash:** `20164ec`
 
 **Actual commit message:**
+
+```text
+feat(agent): load breakpoints.yaml seed config
+
+- Add breakpoints.yaml with function, method, and file_line seed examples
+- Add breakpoint_from_dict and load_breakpoints_yaml to agent/breakpoints.py
+- Add PyYAML to requirements.txt; add tests/test_breakpoints_yaml.py
+- Update TASK_CHECKLIST and CONTEXT: PR-05 complete, PR draft ready
+```
 
 **Notes:**
 
@@ -974,8 +984,8 @@ pytest tests/ -q → 38 passed
 **PR-05 merge checklist:**
 
 - [x] All tasks 5.1–5.5 ✅
-- [ ] CI green on PR
-- [ ] PR merged to `main`
+- [x] CI green on PR
+- [x] PR merged to `main` (PR #5, merge `4046196`)
 
 **Pull request draft** *(copy to GitHub after task 5.5 push):*
 
@@ -1028,10 +1038,120 @@ Depends on PR-04. Enables PR-08 (tracer) and PR-09 (control API).
 
 ## PR-06 — `feat/agent-safe-serializer`
 
+### Task 7.1 — SafeSerializer
+
+| Field | Detail |
+|-------|--------|
+| **Status** | ✅ done (commit `3517cac`, CI green) |
+| **Branch** | `feat/agent-safe-serializer` |
+| **Requirements** | R30 |
+| **Files** | `agent/serializer.py`, `tests/test_serializer.py` |
+| **Done when** | Circular refs, callables, generators, bytes, depth limit; tests pass |
+
+**Delivered:**
+
+- `SafeSerializer` — `serialize()` + `serialize_locals()` with depth limit (default 5)
+- Fallbacks: bytes, callables, generators, circular refs, nested dict/list/set
+- Never raises on pathological inputs (BadRepr → safe fallback)
+
+**Verification:**
+
+```text
+pytest tests/test_serializer.py -q → 7 passed
+pytest tests/ -q → 45 passed
+```
+
+**Placeholder commit:** `feat(agent): add SafeSerializer with type fallbacks`
+
+**Actual commit hash:** `3517cac`
+
+**Actual commit message:**
+
+```text
+feat(agent): add SafeSerializer with type fallbacks
+- Add SafeSerializer with depth limit, circular ref guard, type fallbacks
+- Handle bytes, callables, generators; serialize_locals never raises
+- Add tests/test_serializer.py with 7 cases (45 total pytest)
+- Update TASK_CHECKLIST and CONTEXT: PR-05 merged, PR-06 task 7.1 done
+```
+
+**Notes:** Pushed; CI green on branch.
+
+---
+
+### Task 7.2 — Pathological serializer inputs
+
+| Field | Detail |
+|-------|--------|
+| **Status** | ✅ done (commit pending) |
+| **Branch** | `feat/agent-safe-serializer` |
+| **Requirements** | R31 |
+| **Files** | `agent/serializer.py`, `tests/test_serializer.py` |
+| **Done when** | Extra pathological cases; `serialize` / `serialize_locals` never raise |
+
+**Delivered:**
+
+- Per-item try/except in dict/list branches; bad dict keys → `<bad_key TypeName>`
+- Tests: circular list, mutual dict cycle, infinite `__repr__`, bad keys, long bytes, bytearray, mixed basket, parametrized never-raises sweep
+
+**Verification:**
+
+```text
+pytest tests/test_serializer.py -q → 15 passed
+pytest tests/ -q → 53 passed
+```
+
+**Placeholder commit:** `test(agent): pathological SafeSerializer cases (R31)`
+
+**Actual commit hash:**
+
+**Actual commit message:**
+
+**Notes:**
+
+---
+
 | Task | Status | Files | Req |
 |------|--------|-------|-----|
-| **7.1** SafeSerializer | ⬜ | `agent/serializer.py`, `tests/test_serializer.py` | R30 |
-| **7.2** pathological inputs | ⬜ | tests | R31 |
+| **7.2** pathological inputs | ✅ | tests | R31 |
+
+**PR-06 merge checklist:**
+
+- [x] All tasks 7.1–7.2 ✅
+- [ ] CI green on PR
+- [ ] PR merged to `main`
+
+**Pull request draft** *(copy to GitHub after task 7.2 push):*
+
+| Field | Value |
+|-------|--------|
+| **When** | Now — after task 7.2 commit + push |
+| **Base ← Compare** | `main` ← `feat/agent-safe-serializer` |
+| **Title** | `feat(agent): safe serializer (PR-06)` |
+
+**Description** (paste into GitHub PR body):
+
+```markdown
+## Summary
+Defensive JSON-oriented serialization for captured locals — type fallbacks, depth limit, circular refs, and pathological-input hardening (R30, R31).
+
+## Tasks included
+
+### Task 7.1 — SafeSerializer
+- **Files:** `agent/serializer.py`, `tests/test_serializer.py`
+- **Behavior:** `serialize()` + `serialize_locals()`; bytes, callables, generators, circular refs, depth limit
+- **Verification:** 7 tests; pytest 45 passed
+
+### Task 7.2 — Pathological inputs
+- **Files:** `agent/serializer.py`, `tests/test_serializer.py`
+- **Behavior:** Per-item dict/list guards; bad keys; circular list/mutual dict; infinite repr; never-raises sweep
+- **Verification:** 15 serializer tests; pytest 53 passed
+
+## Test plan
+- [ ] `pytest tests/test_serializer.py -q` → 15 passed
+- [ ] `pytest tests/ -q` → 53 passed
+- [ ] CI green
+```
 
 ---
 
