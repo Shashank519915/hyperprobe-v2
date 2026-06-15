@@ -13,8 +13,8 @@ Plan reference: `notes/IMPLEMENTATION_PLAN.md` · Design: `notes/ARCHITECTURE_V2
 
 | PR | Branch | Tasks | Done | Status |
 |----|--------|-------|------|--------|
-| PR-01 | `chore/repo-scaffold` | 1.1–1.4 | 4/4 | ✅ ready for PR |
-| PR-02 | `feat/target-core-layers` | 2.1–2.3 | 0/3 | ⬜ todo |
+| PR-01 | `chore/repo-scaffold` | 1.1–1.4 | 4/4 | ✅ merged |
+| PR-02 | `feat/target-core-layers` | 2.1–2.3 | 1/3 | 🔄 in progress |
 | PR-03 | `feat/target-http-server` | 2.4–2.6 | 0/3 | ⬜ todo |
 | PR-04 | `feat/agent-data-models` | 4.1–4.2 | 0/2 | ⬜ todo |
 | PR-05 | `feat/agent-breakpoint-registry` | 5.1–5.5 | 0/5 | ⬜ todo |
@@ -171,7 +171,7 @@ Pushed to origin/chore/repo-scaffold
 
 | Field | Detail |
 |-------|--------|
-| **Status** | ✅ done (commit pending) |
+| **Status** | ✅ done |
 | **Branch** | `chore/repo-scaffold` |
 | **Requirements** | — |
 | **Files** | `agent/__init__.py`, `target/__init__.py`, `tests/conftest.py`, `.github/workflows/ci.yml` |
@@ -185,9 +185,18 @@ Pushed to origin/chore/repo-scaffold
 
 **Placeholder commit:** `chore: add empty package init files`
 
-**Actual commit hash:**
+**Actual commit hash:** `732ffdd` (merged via PR #1)
 
 **Actual commit message:**
+
+```text
+chore: add empty package init files
+
+- Add agent/__init__.py and target/__init__.py (scaffold packages)
+- Add tests/conftest.py with scaffold hook for 0 tests, exit 0
+- Simplify CI pytest step now that conftest handles empty collection
+- Update TASK_CHECKLIST and CONTEXT: PR-01 complete, PR draft ready
+```
 
 **Verification:**
 
@@ -202,8 +211,8 @@ pytest tests/ -q → no tests ran, exit 0 (Python 3.12.10, pytest 8.4.2)
 **PR-01 merge checklist:**
 
 - [x] All tasks 1.1–1.4 ✅
-- [ ] CI green on PR
-- [ ] PR merged to `main`
+- [x] CI green on PR
+- [x] PR merged to `main` (PR #1, merge `9c3b6a1`)
 
 **Pull request draft** *(copy to GitHub after task 1.4 push):*
 
@@ -261,15 +270,34 @@ First PR — no merge dependency. After merge, branch `feat/target-core-layers` 
 
 | Field | Detail |
 |-------|--------|
-| **Status** | ⬜ todo |
+| **Status** | ✅ done (commit pending) |
 | **Branch** | `feat/target-core-layers` |
 | **Requirements** | R2, R3, R14 |
 | **Files** | `target/engines/addition.py`, `subtraction.py`, `multiplication.py`, `division.py` |
 | **Done when** | Pure engine logic; no I/O; no agent imports |
 
+**Delivered:**
+
+- `AdditionEngine.add(a, b)` — addition
+- `SubtractionEngine.subtract(a, b)` — subtraction
+- `MultiplicationEngine.multiply(a, b)` — multiplication
+- `DivisionEngine.divide(a, b)` — division (raises `ZeroDivisionError` when `b == 0`)
+
+**Verification:**
+
+```text
+python -c "from target.engines...; assert AdditionEngine().add(10, 20) == 30; ..." → OK
+pytest tests/ -q → no tests ran, exit 0
+No agent imports, logging, or print in target/engines/
+```
+
 **Placeholder commit:** `feat(target): add operation engines (add/sub/mul/div)`
 
-**Actual commit hash:** · **Actual commit message:** · **Verification:** · **Notes:**
+**Actual commit hash:**
+
+**Actual commit message:**
+
+**Notes:** Method qualnames (e.g. `AdditionEngine.add`) align with architecture breakpoint examples.
 
 ---
 
@@ -302,6 +330,22 @@ First PR — no merge dependency. After merge, branch `feat/target-core-layers` 
 **Placeholder commit:** `test(target): unit test MathService and engines`
 
 **Actual commit hash:** · **Actual commit message:** · **Verification:** · **Notes:**
+
+---
+
+**PR-02 merge checklist:**
+
+- [ ] All tasks 2.1–2.3 ✅
+- [ ] CI green on PR
+- [ ] PR merged to `main`
+
+**Pull request draft** *(fill after task 2.3 — then open PR on GitHub):*
+
+| Field | Value |
+|-------|--------|
+| **When** | After task **2.3** is committed and pushed |
+| **Base ← Compare** | `main` ← `feat/target-core-layers` |
+| **Title** | `feat(target): core math layers (PR-02)` |
 
 ---
 

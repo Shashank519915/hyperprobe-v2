@@ -12,7 +12,7 @@ See also: [`CODE_STYLE.md`](CODE_STYLE.md) · local design docs in `notes/` (git
 | **GitHub** | https://github.com/Shashank519915/hyperprobe.git |
 | **Structure** | Monorepo — `target/` + `agent/` in one repo |
 | **Default branch** | `main` |
-| **Active branch** | `chore/repo-scaffold` (PR-01) |
+| **Active branch** | `feat/target-core-layers` (PR-02) |
 | **CI workflows** | `ci` (pytest + purity) · `Dependency Graph` (Dependabot — automatic) |
 
 ---
@@ -33,7 +33,8 @@ See also: [`CODE_STYLE.md`](CODE_STYLE.md) · local design docs in `notes/` (git
 ```text
 hyperprobe/
 ├── agent/              # instrumentation (later)
-├── target/             # calculator (later)
+├── target/
+│   └── engines/        # layer 3 — add/sub/mul/div engines (PR-02)
 ├── tests/
 ├── scripts/
 ├── snapshots/
@@ -62,6 +63,12 @@ hyperprobe/
 ## Progress log
 
 Append newest entries at the **top**.
+
+### 2026-06-15 — PR-01 merged; task 2.1 complete (local)
+
+- PR #1 merged to `main` (merge `9c3b6a1`); branched `feat/target-core-layers` from updated `main`
+- Task 2.1: four operation engines in `target/engines/` (pure classes, no I/O)
+- Next: commit 2.1, then task 2.2 (MathService)
 
 ### 2026-06-15 — Task 1.4 complete (local)
 
@@ -110,11 +117,11 @@ Append newest entries at the **top**.
 
 ---
 
-## Git: creating `main` branch
+## Git workflow
 
-`main` exists on GitHub as default branch (same scaffold snapshot for now).
+PR-01 merged to `main`. Current work: **PR-02** on `feat/target-core-layers`.
 
-Finish PR-01 on `chore/repo-scaffold` — task 1.4 done; open PR → merge into `main`.
+After each PR merges: `git checkout main` → `git pull origin main` → new feature branch.
 
 ---
 
