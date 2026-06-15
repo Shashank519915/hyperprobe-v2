@@ -16,8 +16,8 @@ Plan reference: `notes/IMPLEMENTATION_PLAN.md` · Design: `notes/ARCHITECTURE_V2
 | PR-01 | `chore/repo-scaffold` | 1.1–1.4 | 4/4 | ✅ merged |
 | PR-02 | `feat/target-core-layers` | 2.1–2.3 | 3/3 | ✅ merged |
 | PR-03 | `feat/target-http-server` | 2.4–2.6 | 3/3 | ✅ merged |
-| PR-04 | `feat/agent-data-models` | 4.1–4.2 | 2/2 | ✅ ready for PR |
-| PR-05 | `feat/agent-breakpoint-registry` | 5.1–5.5 | 0/5 | ⬜ todo |
+| PR-04 | `feat/agent-data-models` | 4.1–4.2 | 2/2 | ✅ merged |
+| PR-05 | `feat/agent-breakpoint-registry` | 5.1–5.5 | 1/5 | 🔄 in progress |
 | PR-06 | `feat/agent-safe-serializer` | 7.1–7.2 | 0/2 | ⬜ todo |
 | PR-07 | `feat/agent-capture-worker` | 6.1–6.3 | 0/3 | ⬜ todo |
 | PR-08 | `feat/agent-tracer` | 8.1–8.6 | 0/6 | ⬜ todo |
@@ -680,7 +680,7 @@ feat(agent): add Breakpoint and CaptureMode models
 
 | Field | Detail |
 |-------|--------|
-| **Status** | ✅ done (commit pending) |
+| **Status** | ✅ done |
 | **Branch** | `feat/agent-data-models` |
 | **Requirements** | R10, R20 |
 | **Files** | `agent/models.py` |
@@ -697,13 +697,22 @@ feat(agent): add Breakpoint and CaptureMode models
 ```text
 Import smoke test for RawCapture, RawFrame, Snapshot, StackFrame
 pytest tests/ -q → 18 passed
+Merged via PR #4 (merge f96581f); CI green
 ```
 
 **Placeholder commit:** `feat(agent): add RawCapture, Snapshot, StackFrame models`
 
-**Actual commit hash:**
+**Actual commit hash:** `a19020a`
 
 **Actual commit message:**
+
+```text
+feat(agent): add RawCapture, Snapshot, StackFrame models
+
+- Add TraceEvent, RawFrame, RawCapture (immutable sync copies, section 5.5)
+- Add StackFrame and Snapshot for worker JSON output (section 5.7)
+- Update TASK_CHECKLIST and CONTEXT: PR-04 complete, PR draft ready
+```
 
 **Notes:**
 
@@ -712,8 +721,8 @@ pytest tests/ -q → 18 passed
 **PR-04 merge checklist:**
 
 - [x] All tasks 4.1–4.2 ✅
-- [ ] CI green on PR
-- [ ] PR merged to `main`
+- [x] CI green on PR
+- [x] PR merged to `main` (PR #4, merge `f96581f`)
 
 **Pull request draft** *(copy to GitHub after task 4.2 push):*
 
@@ -756,15 +765,60 @@ Depends on PR-01/PR-03 on main. Enables PR-05 (registry) and PR-06/07 (serialize
 
 ## PR-05 — `feat/agent-breakpoint-registry`
 
+### Task 5.1 — Path normalization
+
+| Field | Detail |
+|-------|--------|
+| **Status** | ✅ done (commit pending) |
+| **Branch** | `feat/agent-breakpoint-registry` |
+| **Requirements** | R22 |
+| **Files** | `agent/breakpoints.py`, `tests/test_breakpoints.py` |
+| **Done when** | `normalize_path()` via `Path.resolve()`; unit tests pass |
+
+**Delivered:**
+
+- `normalize_path(path)` → canonical absolute path string for file_line matching
+- `tests/test_breakpoints.py` — 4 path normalization cases (relative, string/path, dot segments, stability)
+
+**Verification:**
+
+```text
+pytest tests/test_breakpoints.py -q → 4 passed
+pytest tests/ -q → 22 passed
+```
+
+**Placeholder commit:** `feat(agent): add path normalization helper`
+
+**Actual commit hash:**
+
+**Actual commit message:**
+
+**Notes:**
+
+---
+
 | Task | Status | Files | Req |
 |------|--------|-------|-----|
-| **5.1** path normalization | ⬜ | `agent/breakpoints.py` | R22 |
 | **5.2** matchers | ⬜ | `agent/breakpoints.py`, `tests/test_breakpoints.py` | R5–R7 |
 | **5.3** registry indexes | ⬜ | `agent/registry.py`, `tests/test_registry.py` | R21 |
 | **5.4** multiple BPs | ⬜ | `agent/registry.py` | R20 |
 | **5.5** breakpoints.yaml | ⬜ | `breakpoints.yaml` | R29 |
 
 _Record commit hash / message / verification per task when done._
+
+**PR-05 merge checklist:**
+
+- [ ] All tasks 5.1–5.5 ✅
+- [ ] CI green on PR
+- [ ] PR merged to `main`
+
+**Pull request draft** *(fill after task 5.5 — then open PR on GitHub):*
+
+| Field | Value |
+|-------|--------|
+| **When** | After task **5.5** is committed and pushed |
+| **Base ← Compare** | `main` ← `feat/agent-breakpoint-registry` |
+| **Title** | `feat(agent): breakpoint registry (PR-05)` |
 
 ---
 

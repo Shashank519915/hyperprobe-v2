@@ -12,7 +12,7 @@ See also: [`CODE_STYLE.md`](CODE_STYLE.md) · local design docs in `notes/` (git
 | **GitHub** | https://github.com/Shashank519915/hyperprobe.git |
 | **Structure** | Monorepo — `target/` + `agent/` in one repo |
 | **Default branch** | `main` |
-| **Active branch** | `feat/agent-data-models` (PR-04) |
+| **Active branch** | `feat/agent-breakpoint-registry` (PR-05) |
 | **CI workflows** | `ci` (pytest + purity) · `Dependency Graph` (Dependabot — automatic) |
 
 ---
@@ -33,7 +33,8 @@ See also: [`CODE_STYLE.md`](CODE_STYLE.md) · local design docs in `notes/` (git
 ```text
 hyperprobe/
 ├── agent/
-│   └── models.py       # Breakpoint types (PR-04)
+│   ├── models.py       # Breakpoint + snapshot models (PR-04)
+│   └── breakpoints.py  # normalize_path (PR-05)
 ├── target/
 │   ├── handlers.py     # layer 1 — RouteHandler
 │   ├── server.py       # ThreadingHTTPServer :8080 (PR-03)
@@ -68,6 +69,17 @@ hyperprobe/
 ## Progress log
 
 Append newest entries at the **top**.
+
+### 2026-06-16 — Task 5.1 complete (local)
+
+- Added `agent/breakpoints.py` — `normalize_path()` via `Path.resolve()`
+- Added `tests/test_breakpoints.py` — 4 path normalization tests (22 total pytest)
+- Next: commit 5.1, then task 5.2 (matchers)
+
+### 2026-06-16 — PR-04 merged
+
+- PR #4 merged to `main` (merge `f96581f`); branch `feat/agent-breakpoint-registry`
+- Tasks 4.1–4.2: full agent model layer on main; CI green
 
 ### 2026-06-16 — Task 4.2 complete (local)
 
@@ -198,7 +210,7 @@ Append newest entries at the **top**.
 
 ## Git workflow
 
-PR-03 merged to `main`. Current work: **PR-04** on `feat/agent-data-models`.
+PR-04 merged to `main`. Current work: **PR-05** on `feat/agent-breakpoint-registry`.
 
 After each PR merges: `git checkout main` → `git pull origin main` → new feature branch.
 
