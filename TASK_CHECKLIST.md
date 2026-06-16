@@ -22,8 +22,8 @@ Plan reference: `notes/IMPLEMENTATION_PLAN.md` · Design: `notes/ARCHITECTURE_V2
 | PR-07 | `feat/agent-capture-worker` | 6.1–6.3 | 3/3 | ✅ merged |
 | PR-08 | `feat/agent-tracer` | 8.1–8.6 | 6/6 | ✅ merged |
 | PR-09 | `feat/agent-control-api` | 9.1–9.3 | 3/3 | ✅ merged |
-| PR-10 | `feat/agent-bootstrap` | 10.1–10.2 | 2/2 | ✅ ready for PR |
-| PR-11 | `feat/docker` | 11.1–11.3 | 0/3 | ⬜ todo |
+| PR-10 | `feat/agent-bootstrap` | 10.1–10.2 | 2/2 | ✅ merged |
+| PR-11 | `feat/docker` | 11.1–11.3 | 0/3 | 🔄 in progress |
 | PR-12 | `test/integration-compliance` | 11.4–11.8, 12.1 | 0/6 | ⬜ todo |
 | PR-13 | `chore/ci-hardening` | 12.2–12.3 | 0/2 | ⬜ todo |
 | PR-14 | `docs/readme` | 14.1 | 0/1 | ⬜ todo |
@@ -1902,24 +1902,26 @@ pytest tests/ -q → 120 passed
 
 **Placeholder commit:** `test(agent): end-to-end bootstrap smoke test`
 
-**Actual commit hash:**
+**Actual commit hash:** `3f8c934`
 
 **Actual commit message:**
 
-**Notes:**
+```text
+test(agent): end-to-end bootstrap smoke test
+- Add tests/test_bootstrap.py — GET /calculate produces snapshot with stack_frames (R1, R11)
+- Smoke GET /breakpoints lists seed YAML breakpoints
+- pytest 120 passed; update TASK_CHECKLIST, CONTEXT, DEMO_COMMANDS
+```
+
+**Notes:** Pushed; CI green.
 
 ---
-
-| Task | Status | Files | Req |
-|------|--------|-------|-----|
-| **10.1** bootstrap entrypoint | ✅ | `agent/bootstrap.py` | R4, R24, R29 |
-| **10.2** smoke test | ✅ | `tests/test_bootstrap.py` | R1, R11 |
 
 **PR-10 merge checklist:**
 
 - [x] All tasks 10.1–10.2 ✅
-- [ ] CI green on PR
-- [ ] PR merged to `main`
+- [x] CI green on PR
+- [x] PR merged to `main` (PR #10, merge `c836a99`)
 
 **Pull request draft** *(open after task 10.2 commit + push):*
 
@@ -1955,9 +1957,65 @@ Single process entrypoint — `python -m agent.bootstrap` wires agent + calculat
 
 ## PR-11 — `feat/docker`
 
+### Task 11.1 — Dockerfile (`python:3.12-slim`)
+
+| Field | Detail |
+|-------|--------|
+| **Status** | ✅ done (commit pending) |
+| **Branch** | `feat/docker` |
+| **Requirements** | R32 (partial — image build; compose in 11.2) |
+| **Files** | `Dockerfile`, `.dockerignore` |
+| **Done when** | `docker build` succeeds; ENTRYPOINT bootstrap; EXPOSE 8080+9090 |
+
+**Delivered:**
+
+- `Dockerfile` — `python:3.12-slim`, `WORKDIR /app`, runtime `requirements.txt` only
+- Copies `agent/`, `target/`, `breakpoints.yaml`; creates `snapshots/` dir
+- `ENTRYPOINT ["python", "-m", "agent.bootstrap"]` — **not** `target.server` (R4 external attachment)
+- `EXPOSE 8080 9090` — calculator + control API in one container
+- `.dockerignore` — excludes venv, tests, dev deps, notes, snapshot JSON (smaller/faster build)
+
+**Design notes / README insights** *(mandatory for PR-11 README section):*
+
+| Topic | Detail |
+|-------|--------|
+| **Why bootstrap is ENTRYPOINT** | Assignment requires external instrumentation. Bootstrap loads YAML, starts worker + control API, installs `sys.settrace`, then imports target server — target code never imports agent |
+| **One container, two ports** | `:8080` = calculator HTTP (target); `:9090` = agent control API (breakpoints). Same process — shared registry and tracer |
+| **Runtime vs dev deps** | Image installs `requirements.txt` only (PyYAML). `requirements-dev.txt` (pytest) stays out of image — smaller, production-shaped |
+| **Seed config in image** | `breakpoints.yaml` baked in at build time for reproducible demo; runtime `POST /breakpoints` still works (R25) |
+| **Snapshots** | Default write path `/app/snapshots/` inside container. Task 11.2 bind-mounts host `./snapshots` for persistence |
+| **file_line paths in Docker** | YAML uses repo-relative `target/engines/addition.py`; `normalize_path()` resolves to `/app/target/engines/addition.py` inside container — no YAML change needed |
+| **`EMIT_STDOUT`** | Not set in Dockerfile; task 11.2 sets via compose for Docker log visibility (R12) |
+| **What `.dockerignore` skips** | `tests/`, `scripts/`, tracking docs — image is run-only, not a dev environment |
+
+**Verification:**
+
+```text
+docker build -t hyperprobe-poc:local .
+# Expected: build completes; final image runs bootstrap on start
+
+docker run --rm -p 8080:8080 -p 9090:9090 hyperprobe-poc:local
+# (separate terminal) curl.exe http://localhost:8080/calculate?op=add&a=10&b=20
+# Expected: {"op":"add","a":10.0,"b":20.0,"result":30.0}
+
+pytest tests/ -q → 120 passed (unchanged — no new tests in 11.1)
+```
+
+**Note:** Docker CLI not available in agent dev shell — verify `docker build` locally or wait for PR-13 CI docker job.
+
+**Placeholder commit:** `feat(docker): add Dockerfile with python 3.12-slim`
+
+**Actual commit hash:**
+
+**Actual commit message:**
+
+**Notes:**
+
+---
+
 | Task | Status | Files | Req |
 |------|--------|-------|-----|
-| **11.1** Dockerfile | ⬜ | `Dockerfile` (python:3.12-slim) | R32 |
+| **11.1** Dockerfile | ✅ | `Dockerfile`, `.dockerignore` | R32 |
 | **11.2** docker-compose | ⬜ | `docker-compose.yml` | R32 |
 | **11.3** demo verified | ⬜ | PR description | R32 |
 

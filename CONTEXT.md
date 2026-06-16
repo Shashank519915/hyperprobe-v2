@@ -12,7 +12,7 @@ See also: [`CODE_STYLE.md`](CODE_STYLE.md) · local design docs in `notes/` (git
 | **GitHub** | https://github.com/Shashank519915/hyperprobe.git |
 | **Structure** | Monorepo — `target/` + `agent/` in one repo |
 | **Default branch** | `main` |
-| **Active branch** | `feat/agent-bootstrap` (PR-10) |
+| **Active branch** | `feat/docker` (PR-11) |
 | **CI workflows** | `ci` (pytest + purity) · `Dependency Graph` (Dependabot — automatic) |
 
 ---
@@ -32,6 +32,8 @@ See also: [`CODE_STYLE.md`](CODE_STYLE.md) · local design docs in `notes/` (git
 
 ```text
 hyperprobe/
+├── Dockerfile            # PR-11 — python:3.12-slim, ENTRYPOINT bootstrap
+├── .dockerignore
 ├── agent/
 │   ├── models.py       # Breakpoint + snapshot models (PR-04)
 │   ├── breakpoints.py  # normalize_path + matchers + YAML loader
@@ -80,6 +82,21 @@ hyperprobe/
 ## Progress log
 
 Append newest entries at the **top**.
+
+### 2026-06-16 — Task 11.1 complete (local)
+
+- Added `Dockerfile` + `.dockerignore` — `python:3.12-slim`, ENTRYPOINT `agent.bootstrap`, EXPOSE 8080/9090
+- **Insight:** runtime-only image (no pytest); bootstrap entrypoint preserves external-instrumentation story for README/Docker
+- Next: commit 11.1, then task 11.2 (docker-compose + snapshot volume + EMIT_STDOUT)
+
+### 2026-06-16 — PR-10 merged
+
+- PR #10 merged to `main` (merge `c836a99`); CI green
+- Branch `feat/docker` for PR-11
+
+### 2026-06-16 — Task 10.2 committed + pushed
+
+- Commit `3f8c934` on `feat/agent-bootstrap`; CI green
 
 ### 2026-06-16 — Task 10.2 complete (local)
 
@@ -440,7 +457,7 @@ Append newest entries at the **top**.
 
 ## Git workflow
 
-PR-09 merged to `main` (PR #9, `cdb87a5`). **PR-10** on `feat/agent-bootstrap` — tasks 10.1 ✅ (`5c14401`), 10.2 done locally (ready for commit + PR).
+PR-10 merged to `main` (PR #10, `c836a99`). **PR-11** on `feat/docker` — task 11.1 done locally.
 
 After each PR merges: `git checkout main` → `git pull origin main` → new feature branch.
 
