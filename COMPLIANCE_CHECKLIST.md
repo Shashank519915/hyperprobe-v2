@@ -3,7 +3,7 @@
 Maps assignment requirements **R1–R34** to automated tests, CI jobs, or manual verification steps.  
 Design reference: `notes/ARCHITECTURE_V2.md` · Implementation: `notes/IMPLEMENTATION_PLAN.md`
 
-**Last verified:** 2026-06-16 · **pytest:** 148 passed · **Branch:** `test/integration-compliance`
+**Last verified:** 2026-06-16 · **pytest:** 159 passed · **Branch:** `chore/ci-hardening` (PR-13)
 
 ---
 
@@ -34,7 +34,7 @@ pytest tests/test_capture_lifetime.py tests/test_tracer_tiers.py `
 |----|-------------|----------|--------|
 | **R1** | HTTP `GET /calculate?op=add&a=10&b=20` returns JSON result | `tests/test_target_http.py::test_calculate_add_returns_json`; `tests/test_bootstrap.py::test_bootstrap_calculate_produces_snapshot_with_stack_frames` | ✅ |
 | **R2** | ≥3 nested layers (handler → service → engine) visible in stack | `tests/test_bootstrap.py` — snapshot `stack_frames` includes `AdditionEngine.add`; `tests/test_capture.py::test_capture_includes_caller_locals` | ✅ |
-| **R3** | Target code: zero logging/tracing/agent imports | CI: `scripts/check_target_purity.sh`; `tests/test_target_http.py::test_target_tree_has_no_agent_imports` | ✅ |
+| **R3** | Target code: zero logging/tracing/agent imports | CI: `scripts/check_target_purity.sh` → `target_purity_check.py`; `tests/test_target_purity_script.py`; `tests/test_target_http.py::test_target_tree_has_no_agent_imports` | ✅ |
 | **R4** | Agent attaches externally (bootstrap + settrace, no target edits) | `agent/bootstrap.py`; `tests/test_bootstrap.py` | ✅ |
 | **R5** | Dynamic breakpoint: function name (`co_name`) | `tests/test_tracer_global.py`; `tests/test_control_api.py`; `tests/test_control_server.py::test_post_function_breakpoint_returns_201` | ✅ |
 | **R6** | Dynamic breakpoint: method (`co_qualname` exact) | `tests/test_tracer_global.py::test_global_trace_method_breakpoint_matches_qualname`; `tests/test_control_server.py::test_post_method_and_file_line_breakpoints` | ✅ |
@@ -63,7 +63,7 @@ pytest tests/test_capture_lifetime.py tests/test_tracer_tiers.py `
 | **R29** | YAML seed loads function, method, file_line | `breakpoints.yaml`; `tests/test_breakpoints_yaml.py::test_load_repo_breakpoints_yaml_registers_all_seed_types` | ✅ |
 | **R30** | Safe serialization (depth, cycles, callables) | `tests/test_serializer.py` | ✅ |
 | **R31** | Error isolation in trace callback and worker | `agent/tracer.py` (BaseException handlers); `tests/test_worker.py::test_worker_continues_after_processing_error` | ✅ |
-| **R32** | Docker one-command startup | `Dockerfile`, `docker-compose.yml`; manual: `docker compose up --build` (`notes/DEMO_COMMANDS.md`). **CI docker job:** PR-13 task 12.3 | ⚠️ manual |
+| **R32** | Docker one-command startup | `Dockerfile`, `docker-compose.yml`; CI: `.github/workflows/ci.yml` `docker` job (`docker compose build`); manual demo: `notes/DEMO_COMMANDS.md` | ✅ |
 | **R33** | Human-written README | `README.md` — PR-14 task 14.1 (candidate-authored) | ⬜ pending |
 | **R34** | This compliance checklist in repo | `COMPLIANCE_CHECKLIST.md` (this file) | ✅ |
 
@@ -88,7 +88,7 @@ pytest tests/test_capture_lifetime.py tests/test_tracer_tiers.py `
 | Item | Requirement | Planned |
 |------|-------------|---------|
 | Concurrent HTTP load under trace | R13 | Optional `tests/test_concurrency.py` |
-| Docker build in CI on every merge | R32 | PR-13 task 12.3 |
+| Docker build in CI on every merge | R32 | `.github/workflows/ci.yml` docker job (task 12.3) |
 | Candidate README | R33 | PR-14 task 14.1 |
 
 ---
@@ -100,4 +100,4 @@ GitHub Actions workflow `.github/workflows/ci.yml` on every PR/push:
 1. `pytest tests/ -q`
 2. `bash scripts/check_target_purity.sh`
 
-Covers automated evidence for R1–R31 (except R13 concurrent load and R32 container run).
+Covers automated evidence for R1–R31 and R32 docker build (except R13 concurrent load).
