@@ -39,7 +39,8 @@ hyperprobe/
 │   ├── serializer.py   # SafeSerializer (PR-06)
 │   ├── capture.py      # sync RawCapture from live frames (PR-07)
 │   ├── worker.py       # SnapshotWorker + JSON write (PR-07)
-│   └── installer.py    # sys.settrace + threading.settrace (PR-08)
+│   ├── installer.py    # sys.settrace + threading.settrace (PR-08)
+│   └── tracer.py       # global_trace + local trace tiers (PR-08)
 ├── target/
 │   ├── handlers.py     # layer 1 — RouteHandler
 │   ├── server.py       # ThreadingHTTPServer :8080 (PR-03)
@@ -75,6 +76,16 @@ hyperprobe/
 ## Progress log
 
 Append newest entries at the **top**.
+
+### 2026-06-16 — Task 8.2 complete (local)
+
+- Added `agent/tracer.py` — `Tracer.global_trace` with fast reject + ENTRY capture (§5.3)
+- Added `tests/test_tracer_global.py` — 8 tests; pytest 88 passed
+- Next: commit 8.2, then task 8.3 (local_trace RETURN/BOTH)
+
+### 2026-06-16 — Task 8.1 committed + pushed
+
+- Commit `2bea1ba` on `feat/agent-tracer`; CI green
 
 ### 2026-06-16 — Task 8.1 complete (local)
 
@@ -330,7 +341,7 @@ Append newest entries at the **top**.
 
 ## Git workflow
 
-PR-07 merged to `main`. **PR-08** on `feat/agent-tracer` — task 8.1 done locally.
+PR-07 merged to `main`. **PR-08** on `feat/agent-tracer` — tasks 8.1 ✅, 8.2 done locally.
 
 After each PR merges: `git checkout main` → `git pull origin main` → new feature branch.
 

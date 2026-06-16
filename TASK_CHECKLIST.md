@@ -20,7 +20,7 @@ Plan reference: `notes/IMPLEMENTATION_PLAN.md` · Design: `notes/ARCHITECTURE_V2
 | PR-05 | `feat/agent-breakpoint-registry` | 5.1–5.5 | 5/5 | ✅ merged |
 | PR-06 | `feat/agent-safe-serializer` | 7.1–7.2 | 2/2 | ✅ merged |
 | PR-07 | `feat/agent-capture-worker` | 6.1–6.3 | 3/3 | ✅ merged |
-| PR-08 | `feat/agent-tracer` | 8.1–8.6 | 1/6 | 🔄 in progress |
+| PR-08 | `feat/agent-tracer` | 8.1–8.6 | 2/6 | 🔄 in progress |
 | PR-09 | `feat/agent-control-api` | 9.1–9.3 | 0/3 | ⬜ todo |
 | PR-10 | `feat/agent-bootstrap` | 10.1–10.2 | 0/2 | ⬜ todo |
 | PR-11 | `feat/docker` | 11.1–11.3 | 0/3 | ⬜ todo |
@@ -1347,7 +1347,7 @@ Sync capture from live frames + async snapshot pipeline — worker serializes co
 
 | Field | Detail |
 |-------|--------|
-| **Status** | ✅ done (commit pending) |
+| **Status** | ✅ done (commit `2bea1ba`, CI green) |
 | **Branch** | `feat/agent-tracer` |
 | **Requirements** | R15 |
 | **Files** | `agent/installer.py`, `tests/test_installer.py` |
@@ -1368,6 +1368,48 @@ pytest tests/ -q → 80 passed
 
 **Placeholder commit:** `feat(agent): add trace installer (sys + threading settrace)`
 
+**Actual commit hash:** `2bea1ba`
+
+**Actual commit message:**
+
+```text
+feat(agent): add trace installer (sys + threading settrace)
+- Add TraceInstaller with install/remove for sys and threading hooks
+- Add install_trace and remove_trace helpers for bootstrap (R15)
+- Add tests/test_installer.py with 6 cases (80 total pytest)
+- Update TASK_CHECKLIST (PR-07 merged), CONTEXT, DEMO_COMMANDS
+```
+
+**Notes:** Pushed; CI green.
+
+---
+
+### Task 8.2 — global_trace (ENTRY capture)
+
+| Field | Detail |
+|-------|--------|
+| **Status** | ✅ done (commit pending) |
+| **Branch** | `feat/agent-tracer` |
+| **Requirements** | R4, R8, R13 |
+| **Files** | `agent/tracer.py`, `tests/test_tracer_global.py` |
+| **Done when** | Fast reject, ENTRY/BOTH capture on `'call'`, enqueue RawCapture; hit → snapshot |
+
+**Delivered:**
+
+- `Tracer.global_trace` — non-`'call'` fast return; O(1) registry fast reject (§5.3)
+- ENTRY/BOTH → sync `RawCapture` + `enqueue_capture`; RETURN/BOTH → install function local trace stub
+- Error isolation — trace callback never crashes target
+- End-to-end test: ENTRY hit → worker writes JSON snapshot
+
+**Verification:**
+
+```text
+pytest tests/test_tracer_global.py -q → 8 passed
+pytest tests/ -q → 88 passed
+```
+
+**Placeholder commit:** `feat(agent): add global_trace with fast reject and ENTRY capture`
+
 **Actual commit hash:**
 
 **Actual commit message:**
@@ -1379,7 +1421,7 @@ pytest tests/ -q → 80 passed
 | Task | Status | Files | Req |
 |------|--------|-------|-----|
 | **8.1** installer | ✅ | `agent/installer.py` | R15 |
-| **8.2** global_trace | ⬜ | `agent/tracer.py` | R4, R8, R13 |
+| **8.2** global_trace | ✅ | `agent/tracer.py` | R4, R8, R13 |
 | **8.3** local_trace function | ⬜ | `agent/tracer.py` | R16, R19 |
 | **8.4** local_trace file_line | ⬜ | `agent/tracer.py` | R7, R17 |
 | **8.5** combined local trace | ⬜ | `agent/tracer.py` | R18 |
