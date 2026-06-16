@@ -23,8 +23,8 @@ Plan reference: `notes/IMPLEMENTATION_PLAN.md` · Design: `notes/ARCHITECTURE_V2
 | PR-08 | `feat/agent-tracer` | 8.1–8.6 | 6/6 | ✅ merged |
 | PR-09 | `feat/agent-control-api` | 9.1–9.3 | 3/3 | ✅ merged |
 | PR-10 | `feat/agent-bootstrap` | 10.1–10.2 | 2/2 | ✅ merged |
-| PR-11 | `feat/docker` | 11.1–11.3 | 3/3 | ✅ ready for PR |
-| PR-12 | `test/integration-compliance` | 11.4–11.8, 12.1 | 0/6 | ⬜ todo |
+| PR-11 | `feat/docker` | 11.1–11.3 | 3/3 | ✅ merged |
+| PR-12 | `test/integration-compliance` | 11.4–11.8, 12.1 | 6/6 | ✅ complete (local) |
 | PR-13 | `chore/ci-hardening` | 12.2–12.3 | 0/2 | ⬜ todo |
 | PR-14 | `docs/readme` | 14.1 | 0/1 | ⬜ todo |
 
@@ -2074,7 +2074,7 @@ feat(docker): add docker-compose with snapshot volume
 
 | Field | Detail |
 |-------|--------|
-| **Status** | ✅ done (commit pending — docs only) |
+| **Status** | ✅ done (commit `03963d0`, CI green) |
 | **Branch** | `feat/docker` |
 | **Requirements** | R32 |
 | **Files** | `TASK_CHECKLIST.md`, `CONTEXT.md`, `notes/DEMO_COMMANDS.md` (local) |
@@ -2108,11 +2108,17 @@ pytest tests/ -q → 120 passed
 
 **Placeholder commit:** `docs(docker): verify demo sequence and PR-11 draft`
 
-**Actual commit hash:**
+**Actual commit hash:** `03963d0`
 
 **Actual commit message:**
 
-**Notes:**
+```text
+docs(docker): verify demo sequence and PR-11 draft
+- Record compose demo verified 2026-06-16; note exit 137 port conflict
+- PR-11 combined draft for 11.1-11.3 in TASK_CHECKLIST
+```
+
+**Notes:** Full demo verified — calculate 200, breakpoints JSON, 3 snapshots/request in logs + bind mount.
 
 ---
 
@@ -2125,10 +2131,10 @@ pytest tests/ -q → 120 passed
 **PR-11 merge checklist:**
 
 - [x] All tasks 11.1–11.3 ✅
-- [ ] CI green on PR
-- [ ] PR merged to `main`
+- [x] CI green on PR
+- [x] PR merged to `main` (PR #11, merge `6e63868`)
 
-**Pull request draft** *(open now — combined 11.1–11.3):*
+**Pull request draft** *(merged — PR #11, `6e63868`):*
 
 | Field | Value |
 |-------|--------|
@@ -2178,15 +2184,400 @@ docker compose down
 
 ## PR-12 — `test/integration-compliance`
 
+### Task 11.4 — RETURN/BOTH capture tests
+
+| Field | Detail |
+|-------|--------|
+| **Status** | ✅ done (commit `4b64326`, CI green) |
+| **Branch** | `test/integration-compliance` |
+| **Requirements** | R16 |
+| **Files** | `tests/test_capture_lifetime.py` |
+| **Done when** | RETURN/BOTH locals + return_value; no frame refs; worker JSON |
+
+**Delivered:**
+
+- Extended `tests/test_capture_lifetime.py` — 4 → **10** tests
+- RETURN: no CALL events; final locals + `return_value`; method RETURN via qualname
+- BOTH: call vs return locals differ; two snapshot JSON files on BOTH hit
+- Worker path: RETURN snapshot JSON includes `return_value` and final locals (R16 end-to-end)
+- Frame lifetime: queued captures are dict copies only (no live frame refs)
+
+**Design notes** *(for README / review):*
+
+| Choice | Why |
+|--------|-----|
+| **Method RETURN uses module-level class** | Nested class `co_qualname` includes `<locals>` — BP must match exact qualname (`_MethodReturnEngine.mul`) |
+| **BOTH locals test** | At CALL, body not run → `running` absent; at RETURN, final locals + `return_value` (§5.5 RETURN semantics) |
+| **Worker JSON tests in lifetime file** | Proves RETURN/BOTH survive serialize + write, not just queue RawCapture |
+
+**Verification:**
+
+```text
+pytest tests/test_capture_lifetime.py -q → 10 passed
+pytest tests/ -q → 126 passed
+```
+
+**Placeholder commit:** `test: capture RETURN and BOTH modes`
+
+**Actual commit hash:** `4b64326`
+
+**Actual commit message:**
+
+```text
+test: capture RETURN and BOTH modes
+- Extend tests/test_capture_lifetime.py — RETURN no-CALL, BOTH locals diff, method RETURN
+- Add worker JSON tests for return_value; module-level class for exact qualname (R16)
+- pytest 126 passed; update TASK_CHECKLIST, CONTEXT, DEMO_COMMANDS
+```
+
+**Notes:** Pushed; CI green.
+
+---
+
+### Task 11.5 — Tracer tier isolation
+
+| Field | Detail |
+|-------|--------|
+| **Status** | ✅ done (commit `e723689`, CI green) |
+| **Branch** | `test/integration-compliance` |
+| **Requirements** | R17 |
+| **Files** | `tests/test_tracer_tiers.py` |
+| **Done when** | No global line/return events; local trace only in watched files |
+
+**Delivered:**
+
+- Extended `tests/test_tracer_tiers.py` — 5 → **10** tests
+- Global trace ignores `'return'` (not only `'line'`) — tier-1 fast reject (R17)
+- Function RETURN/ENTRY in unwatched files: local trace never emits `'line'` events
+- file_line BOTH → LINE + RETURN on matching line; wrong line (999) → no capture
+- Combined overlap cases remain in `test_tracer_combined.py` (task 8.5)
+
+**Design notes** *(for README / review):*
+
+| Choice | Why |
+|--------|-----|
+| **Two-tier model (R17)** | `global_trace` handles `'call'` only; `'line'`/`'return'` handled by scoped local trace installed at call time |
+| **Wrong-line test (999)** | Proves line map is exact — watched file alone is not enough |
+| **Multi-line helper in test file** | Unwatched file → function BPs never install file-line local trace |
+
+**Verification:**
+
+```text
+pytest tests/test_tracer_tiers.py -q → 10 passed
+pytest tests/ -q → 131 passed
+```
+
+**Placeholder commit:** `test: tracer tier isolation (no global line events)`
+
+**Actual commit hash:** `e723689`
+
+**Actual commit message:**
+
+```text
+test: tracer tier isolation (no global line events)
+- Extend tests/test_tracer_tiers.py — global ignores return, BOTH, wrong line (R17)
+- pytest 131 passed; update TASK_CHECKLIST, CONTEXT, DEMO_COMMANDS
+```
+
+**Notes:** Pushed; CI green.
+
+---
+
+### Task 11.6 — Multiple matching breakpoints
+
+| Field | Detail |
+|-------|--------|
+| **Status** | ✅ done (commit `6ce8039`, CI green) |
+| **Branch** | `test/integration-compliance` |
+| **Requirements** | R20 |
+| **Files** | `tests/test_multiple_matching_breakpoints.py` |
+| **Done when** | Two BPs same target → single call → distinct `breakpoint_id` snapshots (no dedup) |
+
+**Delivered:**
+
+- New `tests/test_multiple_matching_breakpoints.py` — **5** tests (R20 compliance file)
+- Function ENTRY ×2 → two queue captures + two snapshot JSON files with distinct ids
+- Method qualname ×2 → two worker snapshots (module-level `_MetricEngine` for exact qualname)
+- Mixed ENTRY + RETURN on same function → CALL + RETURN captures, distinct ids
+- Two BOTH BPs same function → four captures (CALL+RETURN per id)
+
+**Design notes** *(for README / review):*
+
+| Choice | Why |
+|--------|-----|
+| **Dedicated R20 file** | Registry/tracer tests exist elsewhere; this file proves end-to-end snapshot distinctness |
+| **Worker JSON tests** | Queue-only checks insufficient for R20 — snapshots must carry per-BP `breakpoint_id` |
+| **Module-level method class** | Same qualname rule as task 11.4 — nested classes break method BP matching |
+
+**Verification:**
+
+```text
+pytest tests/test_multiple_matching_breakpoints.py -q → 5 passed
+pytest tests/ -q → 136 passed
+```
+
+**Placeholder commit:** `test: multiple matching breakpoints produce distinct snapshots`
+
+**Actual commit hash:** `6ce8039`
+
+**Actual commit message:**
+
+```text
+test: multiple matching breakpoints produce distinct snapshots
+- Add tests/test_multiple_matching_breakpoints.py — function/method ENTRY JSON, mixed modes, dual BOTH (R20)
+- pytest 136 passed; update TASK_CHECKLIST, CONTEXT, DEMO_COMMANDS
+```
+
+**Notes:** Pushed; CI green.
+
+---
+
+### Task 11.7 — Queue overflow (target safety)
+
+| Field | Detail |
+|-------|--------|
+| **Status** | ✅ done (commit `0a835e9`, CI green) |
+| **Branch** | `test/integration-compliance` |
+| **Requirements** | R23 |
+| **Files** | `tests/test_queue_overflow.py` |
+| **Done when** | Full queue drops snapshots; traced target completes normally; no exception leak |
+
+**Delivered:**
+
+- New `tests/test_queue_overflow.py` — **6** tests (R23 compliance file)
+- Repeated ENTRY hits with maxsize=1 → correct return values; only first capture kept
+- BOTH mode: CALL accepted, RETURN dropped when full — target still returns correct value
+- Nested traced calls complete under overflow
+- Target exceptions still propagate (overflow handling does not swallow errors)
+- Rate-limited stderr on sustained drops; worker writes only accepted capture
+
+**Design notes** *(for README / review):*
+
+| Choice | Why |
+|--------|-----|
+| **Dedicated R23 file** | `test_worker.py` covers unit-level enqueue/drop; this file proves tracer/target path safety |
+| **Worker stopped during overflow** | Fills queue without draining — isolates drop behavior from worker throughput |
+| **Correctness over completeness** | §5.8.1 — target execution always wins; snapshots are best-effort under overload |
+
+**Verification:**
+
+```text
+pytest tests/test_queue_overflow.py -q → 6 passed
+pytest tests/ -q → 142 passed
+```
+
+**Placeholder commit:** `test: queue overflow drops without breaking target`
+
+**Actual commit hash:** `0a835e9`
+
+**Actual commit message:**
+
+```text
+test: queue overflow drops without breaking target
+- Add tests/test_queue_overflow.py — target completes under full queue, BOTH drop, nested calls, exception propagation (R23)
+- pytest 142 passed; update TASK_CHECKLIST, CONTEXT, DEMO_COMMANDS
+```
+
+**Notes:** Pushed; CI green.
+
+---
+
+### Task 11.8 — file_line breakpoint at normalized path
+
+| Field | Detail |
+|-------|--------|
+| **Status** | ✅ done (commit `d294170`, CI green) |
+| **Branch** | `test/integration-compliance` |
+| **Requirements** | R7, R22 |
+| **Files** | `tests/test_file_line_bp.py` |
+| **Done when** | file_line fires at exact line; relative/absolute/messy paths normalize to same watched file |
+
+**Delivered:**
+
+- New `tests/test_file_line_bp.py` — **6** tests (R7/R22 compliance file)
+- Relative YAML-style path (`target/engines/addition.py`) matches runtime absolute `co_filename`
+- Non-executed line (class header line 1) → no capture during `add()` call
+- Dot-segment relative path (`target/../target/...`) registers watched file and fires
+- RETURN + BOTH end-to-end via `AdditionEngine.add` at line 5 (`return a + b`)
+- Worker JSON snapshot includes normalized `file` path and exact `line`
+
+**Design notes** *(for README / review):*
+
+| Choice | Why |
+|--------|-----|
+| **Dedicated R7/R22 file** | Matcher unit tests in `test_breakpoints.py`; tier tests in `test_tracer_tiers.py` — this file proves tracer + worker path |
+| **`AdditionEngine.add` line 5** | Same seed as `breakpoints.yaml`; single-line body makes exact-line assertions unambiguous |
+| **Wrong line = line 1** | Class header never executes on method call — stronger than arbitrary line 999 |
+
+**Verification:**
+
+```text
+pytest tests/test_file_line_bp.py -q → 6 passed
+pytest tests/ -q → 148 passed
+```
+
+**Placeholder commit:** `test: file_line breakpoint at normalized path`
+
+**Actual commit hash:** `d294170`
+
+**Actual commit message:**
+
+```text
+test: file_line breakpoint at normalized path
+- Add tests/test_file_line_bp.py — relative/absolute/messy paths, exact line 5, worker JSON (R7, R22)
+- pytest 148 passed; update TASK_CHECKLIST, CONTEXT, DEMO_COMMANDS
+```
+
+**Notes:** Pushed; CI green.
+
+---
+
+### Task 12.1 — COMPLIANCE_CHECKLIST.md
+
+| Field | Detail |
+|-------|--------|
+| **Status** | ✅ done (local) |
+| **Branch** | `test/integration-compliance` |
+| **Requirements** | R34 |
+| **Files** | `COMPLIANCE_CHECKLIST.md` |
+| **Done when** | Every R1–R34 row has evidence (test, CI job, or manual step) |
+
+**Delivered:**
+
+- New `COMPLIANCE_CHECKLIST.md` — full R1–R34 matrix with test/command per row
+- Quick verification block (pytest + purity script, PR-12 compliance files)
+- PR-12 compliance test index cross-reference
+- Known gaps documented honestly: R13 concurrent test, R32 CI docker (PR-13), R33 README (PR-14)
+
+**Design notes** *(for README / review):*
+
+| Choice | Why |
+|--------|-----|
+| **Honest gap markers** | R13/R32/R33 not fully automated yet — checklist reflects actual state, not aspirational |
+| **R28 via breakpoint_from_dict** | Control API POST uses same loader as YAML; uuid test in `test_breakpoints_yaml.py` is valid evidence |
+| **Status legend** | ✅ / ⚠️ / ⬜ makes reviewer scan fast without hiding pending work |
+
+**Verification:**
+
+```text
+pytest tests/ -q → 148 passed
+# COMPLIANCE_CHECKLIST.md covers R1–R34 (34 requirement rows)
+```
+
+**Placeholder commit:** `docs: add COMPLIANCE_CHECKLIST.md mapping R1–R34`
+
+**Actual commit hash:**
+
+**Actual commit message:**
+
+**Notes:** Completes PR-12 scope (11.4–11.8 + 12.1). Optional integration/concurrency tests remain out of scope unless added before PR open.
+
+---
+
 | Task | Status | Files | Req |
 |------|--------|-------|-----|
-| **11.4** RETURN/BOTH tests | ⬜ | `tests/test_capture_lifetime.py` | R16 |
-| **11.5** tracer tiers | ⬜ | `tests/test_tracer_tiers.py` | R17 |
-| **11.6** multiple BPs | ⬜ | `tests/test_multiple_matching_breakpoints.py` | R20 |
-| **11.7** queue overflow | ⬜ | tests | R23 |
-| **11.8** file_line BP | ⬜ | `tests/test_file_line_bp.py` | R7, R22 |
-| **12.1** COMPLIANCE_CHECKLIST | ⬜ | `COMPLIANCE_CHECKLIST.md` | R34 |
-| _integration_ | ⬜ | `test_integration.py`, `test_concurrency.py` | R1, R13 |
+| **11.4** RETURN/BOTH tests | ✅ | `tests/test_capture_lifetime.py` | R16 |
+| **11.5** tracer tiers | ✅ | `tests/test_tracer_tiers.py` | R17 |
+| **11.6** multiple BPs | ✅ | `tests/test_multiple_matching_breakpoints.py` | R20 |
+| **11.7** queue overflow | ✅ | `tests/test_queue_overflow.py` | R23 |
+| **11.8** file_line BP | ✅ | `tests/test_file_line_bp.py` | R7, R22 |
+| **12.1** COMPLIANCE_CHECKLIST | ✅ | `COMPLIANCE_CHECKLIST.md` | R34 |
+| _integration_ (optional) | ⬜ deferred | `tests/test_integration.py`, `tests/test_concurrency.py` | R1, R13 |
+
+**Optional stretch — not in PR-12 scope:** The `_integration_` row comes from `notes/IMPLEMENTATION_PLAN.md` (“Also in this PR if not done”). It would add full HTTP integration + concurrent-request tests to close R13 gaps. **R1** is already covered by `tests/test_bootstrap.py` and `tests/test_target_http.py`; **R13** is partial (see `COMPLIANCE_CHECKLIST.md`). Ship PR-12 without this row unless you want extra tests before merge.
+
+**PR-12 merge checklist:**
+
+- [ ] All tasks 11.4–12.1 ✅ (commit 12.1 pending)
+- [ ] CI green on PR
+- [ ] Open single combined PR (`test/integration-compliance` → `main`)
+
+**Pull request draft** *(open after 12.1 commit + push):*
+
+| Field | Value |
+|-------|--------|
+| **When** | After 12.1 commit pushed; CI green |
+| **Base ← Compare** | `main` ← `test/integration-compliance` |
+| **Title** | `test: integration compliance suite and R1–R34 checklist (PR-12)` |
+
+**Description** (paste into GitHub PR body):
+
+```markdown
+## Summary
+Prove assignment requirements with dedicated compliance tests + `COMPLIANCE_CHECKLIST.md` mapping R1–R34 to pytest, CI, or manual verification.
+
+## Tasks included
+
+### Task 11.4 — RETURN/BOTH capture tests (R16)
+- **Files:** `tests/test_capture_lifetime.py` (4 → 10 tests)
+- **Commit:** `4b64326`
+- RETURN/BOTH locals + `return_value`; no live frame refs; worker JSON
+
+### Task 11.5 — Tracer tier isolation (R17)
+- **Files:** `tests/test_tracer_tiers.py` (5 → 10 tests)
+- **Commit:** `e723689`
+- Global trace ignores `'line'`/`'return'`; local trace only in watched files
+
+### Task 11.6 — Multiple matching breakpoints (R20)
+- **Files:** `tests/test_multiple_matching_breakpoints.py` (new, 5 tests)
+- **Commit:** `6ce8039`
+- Two BPs same target → distinct snapshots (no deduplication)
+
+### Task 11.7 — Queue overflow target safety (R23)
+- **Files:** `tests/test_queue_overflow.py` (new, 6 tests)
+- **Commit:** `0a835e9`
+- Full queue drops snapshots; traced target completes normally
+
+### Task 11.8 — file_line at normalized path (R7, R22)
+- **Files:** `tests/test_file_line_bp.py` (new, 6 tests)
+- **Commit:** `d294170`
+- Relative/absolute/messy paths; exact line 5; worker JSON
+
+### Task 12.1 — Compliance checklist (R34)
+- **Files:** `COMPLIANCE_CHECKLIST.md`
+- **Commit:** _(pending)_
+- R1–R34 matrix with test/CI/manual evidence; honest gaps for R13, R32, R33
+
+## Requirements covered (high level)
+
+| Area | Req | Evidence |
+|------|-----|----------|
+| Capture modes | R16 | `test_capture_lifetime.py` |
+| Two-tier trace | R17 | `test_tracer_tiers.py` |
+| Multi-BP snapshots | R20 | `test_multiple_matching_breakpoints.py` |
+| Queue overflow | R23 | `test_queue_overflow.py` |
+| file+line BP | R7, R22 | `test_file_line_bp.py` |
+| Checklist | R34 | `COMPLIANCE_CHECKLIST.md` |
+
+## Verification (reviewer)
+
+```powershell
+pytest tests/ -q
+# → 148 passed (after 12.1)
+
+pytest tests/test_capture_lifetime.py tests/test_tracer_tiers.py `
+  tests/test_multiple_matching_breakpoints.py tests/test_queue_overflow.py `
+  tests/test_file_line_bp.py -q
+# → 37 passed (PR-12 compliance batch)
+
+bash scripts/check_target_purity.sh
+# → OK (also runs in CI)
+```
+
+Review `COMPLIANCE_CHECKLIST.md` for full R1–R34 mapping.
+
+## Known gaps (documented, not blocking this PR)
+
+- **R13** concurrent load — no `test_concurrency.py` yet (optional stretch row in checklist)
+- **R32** Docker in CI — PR-13 task 12.3
+- **R33** README — PR-14 (human-written)
+
+## Test plan
+- [x] `pytest tests/ -q` → 148 passed locally
+- [x] PR-12 compliance batch → 37 passed
+- [x] `COMPLIANCE_CHECKLIST.md` covers R1–R34
+- [ ] CI green on PR
+```
 
 ---
 
@@ -2217,4 +2608,4 @@ docker compose down
 
 ---
 
-*Last updated: 2026-06-15 — task 1.1 complete*
+*Last updated: 2026-06-16 — task 12.1 complete (local); PR-12 scope done*

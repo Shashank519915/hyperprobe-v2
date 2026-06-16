@@ -12,7 +12,7 @@ See also: [`CODE_STYLE.md`](CODE_STYLE.md) · local design docs in `notes/` (git
 | **GitHub** | https://github.com/Shashank519915/hyperprobe.git |
 | **Structure** | Monorepo — `target/` + `agent/` in one repo |
 | **Default branch** | `main` |
-| **Active branch** | `feat/docker` (PR-11) |
+| **Active branch** | `test/integration-compliance` (PR-12) |
 | **CI workflows** | `ci` (pytest + purity) · `Dependency Graph` (Dependabot — automatic) |
 
 ---
@@ -84,7 +84,69 @@ hyperprobe/
 
 Append newest entries at the **top**.
 
-### 2026-06-16 — Task 11.3 complete (local)
+### 2026-06-16 — Task 12.1 complete (local)
+
+- New `COMPLIANCE_CHECKLIST.md` — R1–R34 matrix with test/CI/manual evidence per row
+- **Choice:** honest ⚠️/⬜ markers for R13 concurrent, R32 CI docker, R33 README — not greenwashing gaps
+- PR-12 scope complete (11.4–11.8 + 12.1); next: commit 12.1, open combined PR-12
+
+### 2026-06-16 — Task 11.8 committed + pushed
+
+- Commit `d294170` on `test/integration-compliance`; CI green
+
+### 2026-06-16 — Task 11.8 complete (local)
+
+- New `tests/test_file_line_bp.py` — 6 tests (relative/absolute/messy paths, exact line 5, worker JSON)
+- **Insight:** R22 normalization must hold in registry watched_files, line lookup, and snapshot stack `file` field
+- pytest 148 passed; next: commit 11.8, then task 12.1
+
+### 2026-06-16 — Task 11.7 committed + pushed
+
+- Commit `0a835e9` on `test/integration-compliance`; CI green
+
+### 2026-06-16 — Task 11.7 complete (local)
+
+- New `tests/test_queue_overflow.py` — 6 tests (target completes under full queue, BOTH drop, nested calls, exception propagation)
+- **Insight:** R23 compliance = target path safety — unit tests in test_worker.py are necessary but not sufficient
+- pytest 142 passed; next: commit 11.7, then task 11.8
+
+### 2026-06-16 — Task 11.6 committed + pushed
+
+- Commit `6ce8039` on `test/integration-compliance`; CI green
+
+### 2026-06-16 — Task 11.6 complete (local)
+
+- New `tests/test_multiple_matching_breakpoints.py` — 5 tests (function/method ENTRY JSON, mixed modes, dual BOTH)
+- **Insight:** R20 requires per-BP snapshots — registry lookup returns all ids; tracer enqueues one RawCapture per id
+- pytest 136 passed; next: commit 11.6, then task 11.7
+
+### 2026-06-16 — Task 11.5 committed + pushed
+
+- Commit `e723689` on `test/integration-compliance`; CI green
+
+### 2026-06-16 — Task 11.5 complete (local)
+
+- Extended `tests/test_tracer_tiers.py` — 10 tests (global ignores return, no spurious LINE, BOTH, wrong line)
+- **Insight:** tier-1 = call only; line/return always via local trace in watched files or RETURN/BOTH frames
+- pytest 131 passed; next: commit 11.5, then task 11.6
+
+### 2026-06-16 — Task 11.4 committed + pushed
+
+- Commit `4b64326` on `test/integration-compliance`; CI green
+
+### 2026-06-16 — Task 11.4 complete (local)
+
+- Extended `tests/test_capture_lifetime.py` — 10 tests (RETURN/BOTH locals, method RETURN, worker JSON)
+- **Choice:** module-level class for method qualname — nested classes get `<locals>` in `co_qualname`
+- pytest 126 passed; next: commit 11.4, then task 11.5
+
+### 2026-06-16 — PR-11 docs sync committed
+
+- PR #11 merged to `main` (merge `6e63868`); CI green
+- Full compose demo verified: calculate + breakpoints + 3 snapshots/request in logs (`EMIT_STDOUT`)
+- Branch `test/integration-compliance` for PR-12
+
+### 2026-06-16 — Task 11.3 complete
 
 - Demo verified: `docker compose config`, `compose up --build`, snapshot bind mount, `compose down`
 - **Note:** exit code 137 if ports busy — stop prior containers before compose
@@ -479,7 +541,7 @@ Append newest entries at the **top**.
 
 ## Git workflow
 
-PR-10 merged (`c836a99`). **PR-11** on `feat/docker` — 11.1 ✅ (`c365aeb`), 11.2 ✅ (`95ddb81`), 11.3 verified — **open one combined PR**, then merge → PR-12.
+PR-11 merged (`6e63868`). **PR-12** on `test/integration-compliance` — tasks 11.4–11.8 + 12.1 (single combined PR). Optional `_integration_` stretch deferred. PR draft in `TASK_CHECKLIST.md` § PR-12.
 
 After each PR merges: `git checkout main` → `git pull origin main` → new feature branch.
 
