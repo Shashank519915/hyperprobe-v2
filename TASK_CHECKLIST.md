@@ -19,8 +19,8 @@ Plan reference: `notes/IMPLEMENTATION_PLAN.md` · Design: `notes/ARCHITECTURE_V2
 | PR-04 | `feat/agent-data-models` | 4.1–4.2 | 2/2 | ✅ merged |
 | PR-05 | `feat/agent-breakpoint-registry` | 5.1–5.5 | 5/5 | ✅ merged |
 | PR-06 | `feat/agent-safe-serializer` | 7.1–7.2 | 2/2 | ✅ merged |
-| PR-07 | `feat/agent-capture-worker` | 6.1–6.3 | 3/3 | ✅ ready for PR |
-| PR-08 | `feat/agent-tracer` | 8.1–8.6 | 0/6 | ⬜ todo |
+| PR-07 | `feat/agent-capture-worker` | 6.1–6.3 | 3/3 | ✅ merged |
+| PR-08 | `feat/agent-tracer` | 8.1–8.6 | 1/6 | 🔄 in progress |
 | PR-09 | `feat/agent-control-api` | 9.1–9.3 | 0/3 | ⬜ todo |
 | PR-10 | `feat/agent-bootstrap` | 10.1–10.2 | 0/2 | ⬜ todo |
 | PR-11 | `feat/docker` | 11.1–11.3 | 0/3 | ⬜ todo |
@@ -1253,7 +1253,7 @@ feat(agent): add SnapshotWorker background thread
 
 | Field | Detail |
 |-------|--------|
-| **Status** | ✅ done (commit pending) |
+| **Status** | ✅ done (commit `211c9a4`, CI green) |
 | **Branch** | `feat/agent-capture-worker` |
 | **Requirements** | R23 |
 | **Files** | `agent/worker.py`, `tests/test_worker.py` |
@@ -1274,11 +1274,19 @@ pytest tests/ -q → 74 passed
 
 **Placeholder commit:** `feat(agent): bounded capture queue with loss-tolerant overflow`
 
-**Actual commit hash:**
+**Actual commit hash:** `211c9a4`
 
 **Actual commit message:**
 
-**Notes:**
+```text
+feat(agent): bounded capture queue with loss-tolerant overflow
+- Add create_capture_queue (maxsize=1000) and enqueue_capture via put_nowait
+- DropLogger rate-limits snapshot dropped: queue full stderr warnings (R23)
+- Extend tests/test_worker.py with 6 overflow cases (74 total pytest)
+- Update TASK_CHECKLIST with PR-07 draft, CONTEXT, DEMO_COMMANDS
+```
+
+**Notes:** Pushed; merged via PR #7.
 
 ---
 
@@ -1291,14 +1299,14 @@ pytest tests/ -q → 74 passed
 **PR-07 merge checklist:**
 
 - [x] All tasks 6.1–6.3 ✅
-- [ ] CI green on PR
-- [ ] PR merged to `main`
+- [x] CI green on PR
+- [x] PR merged to `main` (PR #7, merge `03279c0`)
 
-**Pull request draft** *(copy to GitHub after task 6.3 push):*
+**Pull request draft** *(merged — PR #7, `03279c0`):*
 
 | Field | Value |
 |-------|--------|
-| **When** | Now — after task 6.3 commit + push |
+| **When** | Merged — PR #7 (`03279c0`) |
 | **Base ← Compare** | `main` ← `feat/agent-capture-worker` |
 | **Title** | `feat(agent): capture worker pipeline (PR-07)` |
 
@@ -1326,16 +1334,51 @@ Sync capture from live frames + async snapshot pipeline — worker serializes co
 - **Verification:** 13 worker tests; pytest 74 passed
 
 ## Test plan
-- [ ] `pytest tests/test_capture.py tests/test_worker.py -q` → 21 passed
-- [ ] `pytest tests/ -q` → 74 passed
-- [ ] CI green
+- [x] `pytest tests/test_capture.py tests/test_worker.py -q` → 21 passed
+- [x] `pytest tests/ -q` → 74 passed
+- [x] CI green
 ```
+
+---
 
 ## PR-08 — `feat/agent-tracer` ⚠️ critical path
 
+### Task 8.1 — Trace installer
+
+| Field | Detail |
+|-------|--------|
+| **Status** | ✅ done (commit pending) |
+| **Branch** | `feat/agent-tracer` |
+| **Requirements** | R15 |
+| **Files** | `agent/installer.py`, `tests/test_installer.py` |
+| **Done when** | Install/remove `sys.settrace` + `threading.settrace`; tests pass |
+
+**Delivered:**
+
+- `TraceInstaller` — `install()` / `remove()` with thread-safe state
+- `install_trace()` / `remove_trace()` — convenience helpers for bootstrap
+- New threads inherit tracing via `threading.settrace`
+
+**Verification:**
+
+```text
+pytest tests/test_installer.py -q → 6 passed
+pytest tests/ -q → 80 passed
+```
+
+**Placeholder commit:** `feat(agent): add trace installer (sys + threading settrace)`
+
+**Actual commit hash:**
+
+**Actual commit message:**
+
+**Notes:**
+
+---
+
 | Task | Status | Files | Req |
 |------|--------|-------|-----|
-| **8.1** installer | ⬜ | `agent/installer.py` | R15 |
+| **8.1** installer | ✅ | `agent/installer.py` | R15 |
 | **8.2** global_trace | ⬜ | `agent/tracer.py` | R4, R8, R13 |
 | **8.3** local_trace function | ⬜ | `agent/tracer.py` | R16, R19 |
 | **8.4** local_trace file_line | ⬜ | `agent/tracer.py` | R7, R17 |

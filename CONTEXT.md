@@ -12,7 +12,7 @@ See also: [`CODE_STYLE.md`](CODE_STYLE.md) · local design docs in `notes/` (git
 | **GitHub** | https://github.com/Shashank519915/hyperprobe.git |
 | **Structure** | Monorepo — `target/` + `agent/` in one repo |
 | **Default branch** | `main` |
-| **Active branch** | `feat/agent-capture-worker` (PR-07) |
+| **Active branch** | `feat/agent-tracer` (PR-08) |
 | **CI workflows** | `ci` (pytest + purity) · `Dependency Graph` (Dependabot — automatic) |
 
 ---
@@ -38,7 +38,8 @@ hyperprobe/
 │   ├── registry.py     # BreakpointRegistry
 │   ├── serializer.py   # SafeSerializer (PR-06)
 │   ├── capture.py      # sync RawCapture from live frames (PR-07)
-│   └── worker.py       # SnapshotWorker + JSON write (PR-07)
+│   ├── worker.py       # SnapshotWorker + JSON write (PR-07)
+│   └── installer.py    # sys.settrace + threading.settrace (PR-08)
 ├── target/
 │   ├── handlers.py     # layer 1 — RouteHandler
 │   ├── server.py       # ThreadingHTTPServer :8080 (PR-03)
@@ -74,6 +75,22 @@ hyperprobe/
 ## Progress log
 
 Append newest entries at the **top**.
+
+### 2026-06-16 — Task 8.1 complete (local)
+
+- Added `agent/installer.py` — `TraceInstaller`, `install_trace`, `remove_trace` (R15)
+- Added `tests/test_installer.py` — 6 tests; pytest 80 passed
+- Next: commit 8.1, then task 8.2 (global_trace)
+
+### 2026-06-16 — PR-07 merged
+
+- PR #7 merged to `main` (merge `03279c0`); CI green
+- Capture pipeline on main: capture.py, worker.py, 74 pytest at merge
+- Branch `feat/agent-tracer` for PR-08
+
+### 2026-06-16 — Task 6.3 committed + pushed
+
+- Commit `211c9a4`; opened PR #7
 
 ### 2026-06-16 — Task 6.3 complete (local)
 
@@ -313,7 +330,7 @@ Append newest entries at the **top**.
 
 ## Git workflow
 
-PR-06 merged to `main`. **PR-07** on `feat/agent-capture-worker` — tasks 6.1–6.3 done locally; open PR after 6.3 commit + push.
+PR-07 merged to `main`. **PR-08** on `feat/agent-tracer` — task 8.1 done locally.
 
 After each PR merges: `git checkout main` → `git pull origin main` → new feature branch.
 
