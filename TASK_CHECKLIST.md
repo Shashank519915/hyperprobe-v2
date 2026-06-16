@@ -23,8 +23,8 @@ Plan reference: `notes/IMPLEMENTATION_PLAN.md` · Design: `notes/ARCHITECTURE_V2
 | PR-08 | `feat/agent-tracer` | 8.1–8.6 | 6/6 | ✅ merged |
 | PR-09 | `feat/agent-control-api` | 9.1–9.3 | 3/3 | ✅ merged |
 | PR-10 | `feat/agent-bootstrap` | 10.1–10.2 | 2/2 | ✅ merged |
-| PR-11 | `feat/docker` | 11.1–11.3 | 3/3 | ✅ ready for PR |
-| PR-12 | `test/integration-compliance` | 11.4–11.8, 12.1 | 0/6 | ⬜ todo |
+| PR-11 | `feat/docker` | 11.1–11.3 | 3/3 | ✅ merged |
+| PR-12 | `test/integration-compliance` | 11.4–11.8, 12.1 | 0/6 | 🔄 in progress |
 | PR-13 | `chore/ci-hardening` | 12.2–12.3 | 0/2 | ⬜ todo |
 | PR-14 | `docs/readme` | 14.1 | 0/1 | ⬜ todo |
 
@@ -2074,7 +2074,7 @@ feat(docker): add docker-compose with snapshot volume
 
 | Field | Detail |
 |-------|--------|
-| **Status** | ✅ done (commit pending — docs only) |
+| **Status** | ✅ done (commit `03963d0`, CI green) |
 | **Branch** | `feat/docker` |
 | **Requirements** | R32 |
 | **Files** | `TASK_CHECKLIST.md`, `CONTEXT.md`, `notes/DEMO_COMMANDS.md` (local) |
@@ -2108,11 +2108,17 @@ pytest tests/ -q → 120 passed
 
 **Placeholder commit:** `docs(docker): verify demo sequence and PR-11 draft`
 
-**Actual commit hash:**
+**Actual commit hash:** `03963d0`
 
 **Actual commit message:**
 
-**Notes:**
+```text
+docs(docker): verify demo sequence and PR-11 draft
+- Record compose demo verified 2026-06-16; note exit 137 port conflict
+- PR-11 combined draft for 11.1-11.3 in TASK_CHECKLIST
+```
+
+**Notes:** Full demo verified — calculate 200, breakpoints JSON, 3 snapshots/request in logs + bind mount.
 
 ---
 
@@ -2125,10 +2131,10 @@ pytest tests/ -q → 120 passed
 **PR-11 merge checklist:**
 
 - [x] All tasks 11.1–11.3 ✅
-- [ ] CI green on PR
-- [ ] PR merged to `main`
+- [x] CI green on PR
+- [x] PR merged to `main` (PR #11, merge `6e63868`)
 
-**Pull request draft** *(open now — combined 11.1–11.3):*
+**Pull request draft** *(merged — PR #11, `6e63868`):*
 
 | Field | Value |
 |-------|--------|

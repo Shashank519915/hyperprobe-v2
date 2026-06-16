@@ -12,7 +12,7 @@ See also: [`CODE_STYLE.md`](CODE_STYLE.md) · local design docs in `notes/` (git
 | **GitHub** | https://github.com/Shashank519915/hyperprobe.git |
 | **Structure** | Monorepo — `target/` + `agent/` in one repo |
 | **Default branch** | `main` |
-| **Active branch** | `feat/docker` (PR-11) |
+| **Active branch** | `test/integration-compliance` (PR-12) |
 | **CI workflows** | `ci` (pytest + purity) · `Dependency Graph` (Dependabot — automatic) |
 
 ---
@@ -84,7 +84,13 @@ hyperprobe/
 
 Append newest entries at the **top**.
 
-### 2026-06-16 — Task 11.3 complete (local)
+### 2026-06-16 — PR-11 merged
+
+- PR #11 merged to `main` (merge `6e63868`); CI green
+- Full compose demo verified: calculate + breakpoints + 3 snapshots/request in logs (`EMIT_STDOUT`)
+- Branch `test/integration-compliance` for PR-12
+
+### 2026-06-16 — Task 11.3 complete
 
 - Demo verified: `docker compose config`, `compose up --build`, snapshot bind mount, `compose down`
 - **Note:** exit code 137 if ports busy — stop prior containers before compose
@@ -479,7 +485,7 @@ Append newest entries at the **top**.
 
 ## Git workflow
 
-PR-10 merged (`c836a99`). **PR-11** on `feat/docker` — 11.1 ✅ (`c365aeb`), 11.2 ✅ (`95ddb81`), 11.3 verified — **open one combined PR**, then merge → PR-12.
+PR-11 merged (`6e63868`). **PR-12** on `test/integration-compliance` — tasks 11.4–11.8 + 12.1.
 
 After each PR merges: `git checkout main` → `git pull origin main` → new feature branch.
 
