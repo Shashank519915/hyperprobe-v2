@@ -28,7 +28,7 @@ Plan reference: `notes/IMPLEMENTATION_PLAN.md` · Design: `notes/ARCHITECTURE_V2
 | PR-13 | `chore/ci-hardening` | 12.2–12.3 | 2/2 | ✅ merged |
 | PR-14 | `test/concurrency` | 13.1–13.2 | 2/2 | ✅ merged |
 | PR-15 | `docs/readme` | 14.1 | 0/1 | 🔄 ready (local README; **submit on `hyperprobe` repo**, not v2) |
-| PR-16 | `feat/monitoring-backend` | 15.1–15.4 | 3/4 | 🔄 in progress |
+| PR-16 | `feat/monitoring-backend` | 15.1–15.4 | 4/4 | 🔄 ready for PR |
 | PR-17 | `feat/monitoring-tracer` | 16.1–16.3 | 0/3 | ⬜ todo |
 | PR-18 | `test/monitoring-parity` | 17.1–17.2 | 0/2 | ⬜ todo |
 | PR-19 | `research/deque-queue` | 18.1 | 0/1 | ⬜ optional |
@@ -3047,17 +3047,18 @@ python -m pytest tests/ -q
 
 **Placeholder commit:** `feat(agent): add instrumentation backend env switch`
 
-**Actual commit hash:** *(pending user commit)*
+**Actual commit hash:** `ca4bd7c`
 
 **Actual commit message:**
 
 ```text
 feat(agent): add instrumentation backend env switch
 
-- HYPERPROBE_BACKEND=settrace|monitoring selects TraceInstaller vs MonitoringInstaller
-- Default settrace; monitoring uses stub callbacks until PR-17 MonitoringTracer
-- Wire disable_monitoring_on_current_thread in worker and control server (R24)
-- Add bootstrap backend tests; document opt-in env in docker-compose.yml
+HYPERPROBE_BACKEND=settrace|monitoring selects TraceInstaller vs MonitoringInstaller in bootstrap.
+
+- Default settrace; monitoring path uses stub callbacks until PR-17 MonitoringTracer
+- Worker and control server call both trace and monitoring thread disables (R24)
+- Add 5 bootstrap backend tests; document opt-in env in docker-compose.yml
 - Update TASK_CHECKLIST.md and CONTEXT.md
 - Verified: bootstrap 7 passed; full suite 178 passed
 ```
@@ -3066,12 +3067,110 @@ feat(agent): add instrumentation backend env switch
 
 ### Task 15.4 — PR-16 merge checklist + PR draft
 
-- [ ] Tasks 15.1–15.3 ✅
-- [ ] All 178 tests still pass with default backend
-- [ ] CI green
-- [ ] Open PR `feat/monitoring-backend` → `main` on **hyperprobe-v2**
+| Field | Detail |
+|-------|--------|
+| **Status** | ✅ done |
+| **Branch** | `feat/monitoring-backend` |
+| **Done when** | Checklist filled; PR title + body ready for hyperprobe-v2 |
 
-**PR title:** `feat(agent): sys.monitoring installer and backend switch (PR-16)`
+**Verification (pre-PR):**
+
+```powershell
+python -m pytest tests/test_monitoring_spike.py tests/test_monitoring_installer.py tests/test_bootstrap.py -q
+python -m pytest tests/ -q
+python scripts/target_purity_check.py
+# → monitoring tests 17 passed; full suite 178 passed; purity OK
+```
+
+**PR-16 merge checklist:**
+
+- [x] Tasks 15.1–15.3 ✅ (`b6a361d`, `d318056`, `ca4bd7c`)
+- [x] All 178 tests pass with default backend (`settrace`)
+- [x] Target purity OK
+- [x] CI green on branch (user verified after 15.3 push)
+- [ ] Open PR `feat/monitoring-backend` → `main` on **hyperprobe-v2**
+- [ ] Merge to `main` (will be PR #16 on v2)
+
+**Git — open PR (branch already pushed):**
+
+```powershell
+git checkout feat/monitoring-backend
+git pull origin feat/monitoring-backend
+
+# Optional: commit this checklist update first
+git add TASK_CHECKLIST.md CONTEXT.md
+git commit -m "docs: PR-16 merge checklist and PR draft" -m "- Record task 15.3 commit ca4bd7c" -m "- Add hyperprobe-v2 PR body for monitoring backend"
+git push origin feat/monitoring-backend
+
+gh pr create --base main --head feat/monitoring-backend --title "feat(agent): sys.monitoring installer and backend switch (PR-16)" --body-file -
+# paste PR body below into stdin, or use heredoc in PowerShell
+```
+
+**Pull request draft** *(paste into GitHub after push):*
+
+| Field | Value |
+|-------|--------|
+| **When** | After tasks 15.1–15.3 pushed; CI green |
+| **Base ← Compare** | `main` ← `feat/monitoring-backend` |
+| **Repo** | https://github.com/Shashank519915/hyperprobe-v2 |
+| **Title** | `feat(agent): sys.monitoring installer and backend switch (PR-16)` |
+
+**Description** (paste into GitHub PR body):
+
+```markdown
+## Summary
+Add optional PEP 669 `sys.monitoring` installation layer alongside existing `sys.settrace` path. Default backend unchanged (`settrace`); monitoring is opt-in via `HYPERPROBE_BACKEND=monitoring` with stub callbacks until PR-17 `MonitoringTracer`.
+
+## Tasks included
+
+### Task 15.1 — sys.monitoring spike
+- **Files:** `tests/test_monitoring_spike.py`
+- **Commit:** `b6a361d`
+- PY_START/PY_RETURN on `AdditionEngine.add` via `set_local_events`
+- Local spike notes in `notes/MONITORING_SPIKE.md` (gitignored)
+
+### Task 15.2 — MonitoringInstaller
+- **Files:** `agent/monitoring_installer.py`, `tests/test_monitoring_installer.py`
+- **Commit:** `d318056`
+- `install_monitoring` / `remove_monitoring`; shared `DEBUGGER_ID`
+- `disable_monitoring_on_current_thread()` — thread-local R24 parity
+
+### Task 15.3 — Backend env switch
+- **Files:** `agent/bootstrap.py`, `agent/worker.py`, `agent/control_server.py`, `docker-compose.yml`, `tests/test_bootstrap.py`
+- **Commit:** `ca4bd7c`
+- `HYPERPROBE_BACKEND=settrace|monitoring`; default `settrace`
+- Worker + control server disable both trace and monitoring on agent threads
+
+## What is intentionally not in this PR
+- **MonitoringTracer** — snapshots under `monitoring` backend come in PR-17
+- **Parity tests** — PR-18
+- **No changes** to `target/` purity or v1 capture/worker pipeline
+
+## Verification (reviewer)
+
+```powershell
+python -m pytest tests/test_monitoring_spike.py tests/test_monitoring_installer.py tests/test_bootstrap.py -q
+python -m pytest tests/ -q
+python scripts/target_purity_check.py
+```
+
+Expected: **178 passed**; purity OK; CI **test** + **docker** jobs green.
+
+## Test plan
+- [ ] Default `settrace` bootstrap/integration tests unchanged
+- [ ] `HYPERPROBE_BACKEND=monitoring` starts without error (stub callbacks; no snapshots yet)
+- [ ] Target purity script passes
+- [ ] CI green on PR
+```
+
+**After merge:**
+
+```powershell
+git checkout main
+git pull origin main
+git checkout -b feat/monitoring-tracer
+# PR-17 task 16.1 — MonitoringTracer
+```
 
 ---
 
@@ -3174,4 +3273,4 @@ On **`hyperprobe-v2`**, PR-15 is **not required** for experiments. When submitti
 
 ---
 
-*Last updated: 2026-06-17 — v2 experimental PR-16–PR-20 added; clone at hyperprobev2*
+*Last updated: 2026-06-18 — PR-16 ready for merge on hyperprobe-v2 (`feat/monitoring-backend`; commits b6a361d → ca4bd7c)*

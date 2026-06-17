@@ -572,6 +572,20 @@ Append newest entries at the **top**.
 
 ---
 
+### 2026-06-18 — v2 task 15.4 complete; PR-16 ready
+
+- PR-16 merge checklist + GitHub PR draft filled in `TASK_CHECKLIST.md`
+- Commits on `feat/monitoring-backend`: `b6a361d` (15.1), `d318056` (15.2), `ca4bd7c` (15.3)
+- Pre-PR verify: monitoring tests 17 passed; full suite 178 passed; target purity OK
+- **User action:** open PR on hyperprobe-v2 (`main` ← `feat/monitoring-backend`)
+- After merge: branch `feat/monitoring-tracer` for PR-17
+
+### 2026-06-18 — v2 task 15.3 committed (`ca4bd7c`)
+
+- Pushed `feat(agent): add instrumentation backend env switch`; CI green
+- `HYPERPROBE_BACKEND=settrace|monitoring`; default `settrace`
+- Next was task 15.4 (PR draft)
+
 ### 2026-06-18 — v2 task 15.3 complete (local)
 
 - `HYPERPROBE_BACKEND=settrace|monitoring` in `agent/bootstrap.py`; default `settrace`
@@ -603,7 +617,15 @@ Append newest entries at the **top**.
 
 ## Git workflow
 
-PR-12 merged (`6e9b773`). **PR-13** on `chore/ci-hardening` — tasks 12.2–12.3.
+**PR-16** ready on `feat/monitoring-backend` (hyperprobe-v2) — open PR, merge, then:
+
+```powershell
+git checkout main
+git pull origin main
+git checkout -b feat/monitoring-tracer
+```
+
+PR-12 merged (`6e9b773`). PR-13/14 merged on submission track.
 
 After each PR merges: `git checkout main` → `git pull origin main` → new feature branch.
 
