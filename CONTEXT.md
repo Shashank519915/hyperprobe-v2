@@ -12,8 +12,8 @@ See also: [`CODE_STYLE.md`](CODE_STYLE.md) · local design docs in `notes/` (git
 | **GitHub** | https://github.com/Shashank519915/hyperprobe.git |
 | **Structure** | Monorepo — `target/` + `agent/` in one repo |
 | **Default branch** | `main` |
-| **Active branch** | `chore/ci-hardening` (PR-13) |
-| **CI workflows** | `ci` (pytest + purity) · `Dependency Graph` (Dependabot — automatic) |
+| **Active branch** | `main` (README draft local; push on `docs/readme`) |
+| **CI workflows** | `ci` — `test` (pytest + purity) + `docker` (compose build) · Dependabot |
 
 ---
 
@@ -83,6 +83,18 @@ hyperprobe/
 ## Progress log
 
 Append newest entries at the **top**.
+
+### 2026-06-16 — PR-14 merged (concurrency + integration)
+
+- PR #14 merged to `main` (merge `9d2c894`); CI green; **163** pytest passed
+- `tests/test_concurrency.py` — parallel HTTP under trace (R13 closed)
+- `tests/test_integration.py` — full bootstrap + runtime POST breakpoint (R1, R25)
+- Only remaining deliverable: R33 human-written README on `docs/readme` branch
+
+### 2026-06-16 — PR-13 merged
+
+- PR #13 merged to `main` (merge `4063eec`); CI green (test + docker jobs)
+- Task 12.2: purity script finalized (`e090fb3`); task 12.3: docker CI job (`da473d4`)
 
 ### 2026-06-16 — PR-12 merged
 
@@ -557,6 +569,16 @@ Append newest entries at the **top**.
 - Verified: `pip install -r requirements-dev.txt`, `pytest 8.4.2`, `pytest` collects 0 tests
 - Pushed to `origin/chore/repo-scaffold`
 - Next: task 1.2 (CI + purity script stub)
+
+---
+
+### 2026-06-18 — v2 task 15.1 complete (local)
+
+- Branch: `feat/monitoring-backend` (create from `main` before commit)
+- Added `tests/test_monitoring_spike.py` — PY_START/PY_RETURN on `AdditionEngine.add`; local events skip unscoped code
+- Added `notes/MONITORING_SPIKE.md` — tool_id, event codes, settrace replacement rule
+- Verified: `python -m pytest tests/test_monitoring_spike.py -q` → 2 passed (Python 3.12.10)
+- Next: task 15.2 (`agent/monitoring_installer.py`)
 
 ---
 

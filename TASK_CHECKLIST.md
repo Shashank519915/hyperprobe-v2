@@ -25,8 +25,21 @@ Plan reference: `notes/IMPLEMENTATION_PLAN.md` · Design: `notes/ARCHITECTURE_V2
 | PR-10 | `feat/agent-bootstrap` | 10.1–10.2 | 2/2 | ✅ merged |
 | PR-11 | `feat/docker` | 11.1–11.3 | 3/3 | ✅ merged |
 | PR-12 | `test/integration-compliance` | 11.4–11.8, 12.1 | 6/6 | ✅ merged |
-| PR-13 | `chore/ci-hardening` | 12.2–12.3 | 2/2 | ✅ complete (local) |
-| PR-14 | `docs/readme` | 14.1 | 0/1 | ⬜ todo |
+| PR-13 | `chore/ci-hardening` | 12.2–12.3 | 2/2 | ✅ merged |
+| PR-14 | `test/concurrency` | 13.1–13.2 | 2/2 | ✅ merged |
+| PR-15 | `docs/readme` | 14.1 | 0/1 | 🔄 ready (local README; **submit on `hyperprobe` repo**, not v2) |
+| PR-16 | `feat/monitoring-backend` | 15.1–15.4 | 1/4 | 🔄 in progress |
+| PR-17 | `feat/monitoring-tracer` | 16.1–16.3 | 0/3 | ⬜ todo |
+| PR-18 | `test/monitoring-parity` | 17.1–17.2 | 0/2 | ⬜ todo |
+| PR-19 | `research/deque-queue` | 18.1 | 0/1 | ⬜ optional |
+| PR-20 | `research/import-hook` | 19.1 | 0/1 | ⬜ optional / spike only |
+
+**Repo map:**
+
+| Folder | GitHub remote | Purpose |
+|--------|---------------|---------|
+| `Desktop\hyperprobe` (rename from `temppp`) | `submission` → hyperprobe.git | **Assignment submission** — merge PR-15 README only |
+| `Desktop\hyperprobev2` | `origin` → hyperprobe-v2.git | **Experiments** — sys.monitoring, etc. |
 
 ---
 
@@ -2488,7 +2501,7 @@ docs: add COMPLIANCE_CHECKLIST.md mapping R1–R34
 | **11.7** queue overflow | ✅ | `tests/test_queue_overflow.py` | R23 |
 | **11.8** file_line BP | ✅ | `tests/test_file_line_bp.py` | R7, R22 |
 | **12.1** COMPLIANCE_CHECKLIST | ✅ | `COMPLIANCE_CHECKLIST.md` | R34 |
-| _integration_ (optional) | ⬜ deferred | `tests/test_integration.py`, `tests/test_concurrency.py` | R1, R13 |
+| _integration_ (optional) | ✅ done | `tests/test_integration.py`, `tests/test_concurrency.py` | R1, R13, R25 |
 
 **Optional stretch — not in PR-12 scope:** The `_integration_` row comes from `notes/IMPLEMENTATION_PLAN.md` (“Also in this PR if not done”). It would add full HTTP integration + concurrent-request tests to close R13 gaps. **R1** is already covered by `tests/test_bootstrap.py` and `tests/test_target_http.py`; **R13** is partial (see `COMPLIANCE_CHECKLIST.md`). Ship PR-12 without this row unless you want extra tests before merge.
 
@@ -2645,7 +2658,7 @@ chore(ci): finalize target purity script
 
 | Field | Detail |
 |-------|--------|
-| **Status** | ✅ done (local) |
+| **Status** | ✅ done (commit `da473d4`, merged PR #13) |
 | **Branch** | `chore/ci-hardening` |
 | **Requirements** | R32 |
 | **Files** | `.github/workflows/ci.yml` |
@@ -2677,11 +2690,15 @@ pytest tests/ -q → 159 passed
 
 **Placeholder commit:** `chore(ci): add docker build job to workflow`
 
-**Actual commit hash:**
+**Actual commit hash:** `da473d4`
 
 **Actual commit message:**
 
-**Notes:** Completes PR-13 scope (12.2 + 12.3).
+```text
+chore(ci): add docker build job to workflow
+```
+
+**Notes:** Pushed; merged via PR #13 (`4063eec`); CI green (test + docker jobs).
 
 ---
 
@@ -2692,75 +2709,408 @@ pytest tests/ -q → 159 passed
 
 **PR-13 merge checklist:**
 
-- [ ] All tasks 12.2–12.3 ✅ (commit 12.3 pending)
-- [ ] CI green on PR (test + docker jobs)
-- [ ] Open single combined PR (`chore/ci-hardening` → `main`)
+- [x] All tasks 12.2–12.3 ✅
+- [x] CI green on PR (test + docker jobs)
+- [x] Merged to `main` (PR #13, `4063eec`)
 
-**Pull request draft** *(open after 12.3 commit + push):*
+---
 
-| Field | Value |
+## PR-14 — `test/concurrency`
+
+Integration and concurrency tests that close remaining compliance gaps (R13, R25 integration path).
+
+### Task 13.1 — Concurrent HTTP under trace
+
+| Field | Detail |
 |-------|--------|
-| **When** | After 12.3 commit pushed; CI green (both jobs) |
-| **Base ← Compare** | `main` ← `chore/ci-hardening` |
-| **Title** | `chore(ci): purity script hardening and Docker CI job (PR-13)` |
+| **Status** | ✅ done (commit `e1d2077`, merged PR #14) |
+| **Branch** | `test/concurrency` |
+| **Requirements** | R13 |
+| **Files** | `tests/test_concurrency.py` |
+| **Done when** | Parallel calculator requests complete; target never blocks; snapshots produced |
 
-**Description** (paste into GitHub PR body):
+**Delivered:**
 
-```markdown
-## Summary
-Harden CI: finalized target purity enforcement (R3) + Docker compose build in GitHub Actions (R32).
+- `ThreadPoolExecutor` with multiple concurrent `GET /calculate` requests under active trace
+- Asserts all HTTP 200, correct JSON results, and snapshot files written
+- Proves non-halting instrumentation — no debugger pause, no deadlock
 
-## Tasks included
+**Verification:**
 
-### Task 12.2 — Finalize target purity script (R3)
-- **Files:** `scripts/target_purity_check.py`, `scripts/check_target_purity.sh`, `tests/test_target_purity_script.py`
-- **Commit:** `e090fb3`
-- Python scanner with file:line violations; bash wrapper; 11 meta-tests
-
-### Task 12.3 — Docker build CI job (R32)
-- **Files:** `.github/workflows/ci.yml`
-- **Commit:** _(pending)_
-- New `docker` job: `docker compose config` + `docker compose build` after pytest
-
-## Verification (reviewer)
-
-```powershell
-pytest tests/ -q
-# → 159 passed
-
-python scripts/target_purity_check.py
-# → check_target_purity: OK
-
-docker compose config
-docker compose build
-```
-
-CI must show **two green jobs**: `test` and `docker`.
-
-## Test plan
-- [x] pytest + purity script pass locally
-- [x] `docker compose build` succeeds locally
-- [ ] CI green on PR (test + docker jobs)
+```text
+pytest tests/test_concurrency.py -q → passed
+pytest tests/ -q → 163 passed
 ```
 
 ---
 
-## PR-14 — `docs/readme`
+### Task 13.2 — Full HTTP integration test
+
+| Field | Detail |
+|-------|--------|
+| **Status** | ✅ done (commit `e1d2077`, merged PR #14) |
+| **Branch** | `test/concurrency` |
+| **Requirements** | R1, R25 |
+| **Files** | `tests/test_integration.py`, `COMPLIANCE_CHECKLIST.md` |
+| **Done when** | Bootstrap + control API + calculator + runtime POST breakpoint end-to-end |
+
+**Delivered:**
+
+- Live `start_agent` + `create_server` on ephemeral ports
+- Runtime `POST /breakpoints` then calculate → snapshot JSON on disk
+- Updated `COMPLIANCE_CHECKLIST.md`: R13 ✅, integration test index
+
+**Verification:**
+
+```text
+pytest tests/test_integration.py -q → passed
+```
+
+**PR-14 merge checklist:**
+
+- [x] Tasks 13.1–13.2 ✅
+- [x] CI green on PR
+- [x] Merged to `main` (PR #14, `9d2c894`)
+
+---
+
+## PR-15 — `docs/readme`
 
 ### Task 14.1 — README (manual)
 
 | Field | Detail |
 |-------|--------|
-| **Status** | ⬜ todo |
+| **Status** | 🔄 ready to push (local draft reviewed; submit after v2 fork if desired) |
 | **Branch** | `docs/readme` |
 | **Requirements** | R33 |
 | **Files** | `README.md` |
 | **Rule** | **Human-written** — not AI-generated |
 
+**Delivered (local):**
+
+- Docker quick start + stop (`docker compose up --build`, `docker compose down`)
+- Calculator + error curl examples
+- Real snapshot JSON examples (from Docker verify — method ENTRY + file_line RETURN)
+- Architecture, decisions, limitations (settrace, shallow copy, no auth)
+- Local dev + repo layout + CI note
+
+**Verification (before merge):**
+
+```powershell
+# From repo root — README is docs-only; sanity-check project still works
+pytest tests/ -q
+python scripts/target_purity_check.py
+docker compose up --build
+# second terminal:
+curl.exe "http://localhost:8080/calculate?op=add&a=10&b=20"
+dir snapshots\
+docker compose down
+```
+
+**Git workflow — run from repo root (`temppp`):**
+
+```powershell
+git checkout main
+git pull origin main
+
+git checkout -b docs/readme
+
+git add README.md
+git commit -m "docs: add README (manual)" -m "- Docker quick start, calculator demo, runtime breakpoint curls" -m "- Real snapshot JSON examples from verified Docker run" -m "- Architecture, design decisions, limitations (settrace, shallow copy)" -m "- Local dev, repo layout, CI; closes R33"
+
+git push origin docs/readme
+```
+
 **Placeholder commit:** `docs: add README (manual)`
 
-**Actual commit hash:** · **Actual commit message:** · **Verification:** · **Notes:**
+**Actual commit hash:** · **Actual commit message:** · **Notes:**
+
+**Do not** include in this commit unless you intend to: `TASK_CHECKLIST.md`, `CONTEXT.md`, `COMPLIANCE_CHECKLIST.md`, `learning/`, `hyperprobe/` nested clone, `$null`, `:wq`.
+
+**PR-15 merge checklist:**
+
+- [ ] Branch `docs/readme` pushed from `main`
+- [ ] README reviewed in your own voice (assignment: no AI-generated README)
+- [ ] Optional: `COMPLIANCE_CHECKLIST.md` R33 row → ✅ after merge
+- [ ] CI green on PR (test + docker jobs — README-only should pass)
+- [ ] Merge to `main` (will be PR #15)
+
+**Pull request draft** *(paste into GitHub after push):*
+
+| Field | Value |
+|-------|--------|
+| **When** | After README commit pushed; CI green |
+| **Base ← Compare** | `main` ← `docs/readme` |
+| **Title** | `docs: add human-written README (PR-15)` |
+
+**Description** (paste into GitHub PR body):
+
+```markdown
+## Summary
+Add submission README (R33): Docker execution steps, architecture summary, limitations, snapshot examples.
+
+## Task included
+
+### Task 14.1 — README (manual) (R33)
+- **Files:** `README.md`
+- **Commit:** _(pending)_
+- Quick start: `docker compose up --build` + calculate curl
+- Runtime breakpoint demo (POST/GET `/breakpoints`)
+- Real snapshot JSON from verified Docker run
+- Architecture (bootstrap, two-tier settrace, sync capture + async worker)
+- Limitations (settrace overhead, same-process attach, shallow locals, no auth)
+
+## Verification (reviewer)
+
+```powershell
+# Docs-only PR — optional full check:
+docker compose up --build
+curl.exe "http://localhost:8080/calculate?op=add&a=10&b=20"
+dir snapshots\
+pytest tests/ -q
+```
+
+CI must show **two green jobs**: `test` and `docker`.
+
+## Test plan
+- [ ] README renders correctly on GitHub
+- [ ] Docker steps match local verify
+- [ ] CI green on PR
+```
+
+**After merge:**
+
+```powershell
+git checkout main
+git pull origin main
+# Optional: update COMPLIANCE_CHECKLIST.md R33 → ✅ in a small follow-up or same PR if you add that file
+git stash drop "stash@{0}"   # if old doc WIP stash still listed — only after confirming README merged
+```
 
 ---
 
-*Last updated: 2026-06-16 — task 12.3 complete (local); PR-13 ready to open*
+*Last updated: 2026-06-17 — PR-15 README draft ready; workflow + PR draft added; defer push until submission or after v2 fork*
+
+---
+
+# HyperProbe v2 — experimental track (`hyperprobe-v2` repo)
+
+**Goal:** Explore [PEP 669 `sys.monitoring`](https://docs.python.org/3/library/sys.monitoring.html) as a lower-overhead alternative to `sys.settrace`, without breaking the v1 pipeline (capture → queue → worker → JSON).
+
+**Rules:** Same as v1 — `CODE_STYLE.md`, one branch per PR, detailed multi-`-m` commits, update this file after each task, pytest before push, target stays pristine. **Also update `CONTEXT.md` and `notes/DEMO_COMMANDS.md` after each verified milestone** (gitignored — local command reference).
+
+**Do not merge v2 experiments into submission repo (`hyperprobe`) until explicitly decided.**
+
+---
+
+## PR-16 — `feat/monitoring-backend`
+
+Replace trace **installation** layer only; keep `capture.py`, `worker.py`, `registry.py`, models unchanged initially.
+
+### Task 15.1 — Research + spike test for sys.monitoring
+
+| Field | Detail |
+|-------|--------|
+| **Status** | ✅ done |
+| **Branch** | `feat/monitoring-backend` |
+| **Files** | `notes/MONITORING_SPIKE.md` (local), `tests/test_monitoring_spike.py` |
+| **Done when** | Spike proves PY_START/PY_RETURN callbacks fire on calculator path; documents tool_id, event codes |
+
+**Delivered:**
+
+- `notes/MONITORING_SPIKE.md` — tool_id slots, event codes (`PY_START`=1, `PY_RETURN`=4), local vs global, settrace replacement rule
+- `tests/test_monitoring_spike.py` — PY_START/PY_RETURN on `AdditionEngine.add`; unscoped code ignored via `set_local_events`
+
+**Approach:**
+
+- Read Python 3.12 docs for `sys.monitoring.use_tool_id`, `register_callback`, `set_events`, local vs global monitoring
+- Minimal test: register on `AdditionEngine.add` code object, call function, assert callback fired
+- Document conflicts: cannot use alongside active `sys.settrace` on same thread — v2 must **replace** installer, not stack both
+
+**Verification:**
+
+```powershell
+python -m pytest tests/test_monitoring_spike.py -q
+# → 2 passed in 0.03s (Python 3.12.10)
+```
+
+**Placeholder commit:** `test(agent): add sys.monitoring spike`
+
+**Actual commit hash:** *(pending user commit)*
+
+**Actual commit message:**
+
+```text
+test(agent): add sys.monitoring spike
+
+- Document PEP 669 tool_id setup and event subscription in notes/MONITORING_SPIKE.md
+- Minimal callback test on AdditionEngine.add target code path
+- Assert PY_START/PY_RETURN fire; local events ignore unscoped functions
+- Verified: python -m pytest tests/test_monitoring_spike.py -q → 2 passed
+```
+
+**Git (after task):**
+
+```powershell
+git checkout main
+git pull origin main
+git checkout -b feat/monitoring-backend
+git add notes/MONITORING_SPIKE.md tests/test_monitoring_spike.py
+git commit -m "test(agent): add sys.monitoring spike" -m "- Document PEP 669 tool_id setup and event subscription" -m "- Minimal callback test on target code path"
+git push origin feat/monitoring-backend
+```
+
+---
+
+### Task 15.2 — MonitoringInstaller (parallel to installer.py)
+
+| Field | Detail |
+|-------|--------|
+| **Status** | ⬜ todo |
+| **Branch** | `feat/monitoring-backend` |
+| **Files** | `agent/monitoring_installer.py`, `tests/test_monitoring_installer.py` |
+| **Done when** | Install/remove monitoring tool; disable on agent threads; tests pass |
+
+**Design:**
+
+- Mirror API of `TraceInstaller`: `install_monitoring(callbacks)` / `remove_monitoring()`
+- Single shared `tool_id` for HyperProbe agent
+- `disable_monitoring_on_current_thread()` for worker + control server (R24 parity)
+
+**Verification:**
+
+```powershell
+pytest tests/test_monitoring_installer.py -q
+pytest tests/ -q   # v1 tests still pass — settrace path untouched until task 15.3
+```
+
+**Placeholder commit:** `feat(agent): add sys.monitoring installer`
+
+---
+
+### Task 15.3 — Feature flag in bootstrap
+
+| Field | Detail |
+|-------|--------|
+| **Status** | ⬜ todo |
+| **Branch** | `feat/monitoring-backend` |
+| **Files** | `agent/bootstrap.py`, `docker-compose.yml` (env) |
+| **Done when** | `HYPERPROBE_BACKEND=settrace|monitoring` selects installer; default `settrace` until tracer ported |
+
+**Env:** `HYPERPROBE_BACKEND=monitoring` (opt-in)
+
+**Placeholder commit:** `feat(agent): add instrumentation backend env switch`
+
+---
+
+### Task 15.4 — PR-16 merge checklist + PR draft
+
+- [ ] Tasks 15.1–15.3 ✅
+- [ ] All 163 existing tests still pass with default backend
+- [ ] CI green
+- [ ] Open PR `feat/monitoring-backend` → `main` on **hyperprobe-v2**
+
+**PR title:** `feat(agent): sys.monitoring installer and backend switch (PR-16)`
+
+---
+
+## PR-17 — `feat/monitoring-tracer`
+
+Port `Tracer` logic to monitoring callbacks (or new `MonitoringTracer` class).
+
+### Task 16.1 — MonitoringTracer ENTRY on PY_START
+
+| Field | Detail |
+|-------|--------|
+| **Status** | ⬜ todo |
+| **Branch** | `feat/monitoring-tracer` |
+| **Files** | `agent/monitoring_tracer.py`, reuse `capture.py` / `enqueue_capture` |
+| **Done when** | Function/method ENTRY breakpoints enqueue RawCapture via monitoring events |
+
+**Note:** Monitoring gives code object — map to registry same as settrace `co_name` / `co_qualname`.
+
+---
+
+### Task 16.2 — RETURN + file_line via monitoring line/return events
+
+| Field | Detail |
+|-------|--------|
+| **Status** | ⬜ todo |
+| **Files** | `agent/monitoring_tracer.py`, extend tests from `test_tracer_global.py` pattern |
+| **Done when** | RETURN/BOTH and file_line parity with v1 for add request |
+
+---
+
+### Task 16.3 — Wire bootstrap + docker default monitoring in v2 compose
+
+| Field | Detail |
+|-------|--------|
+| **Status** | ⬜ todo |
+| **Files** | `agent/bootstrap.py`, `docker-compose.yml`, `README.md` (v2 section) |
+| **Done when** | v2 demo runs with `HYPERPROBE_BACKEND=monitoring`; snapshots still produced |
+
+**PR-17 merge checklist:** parity smoke + `pytest tests/ -q`
+
+---
+
+## PR-18 — `test/monitoring-parity`
+
+### Task 17.1 — Parity test suite (settrace vs monitoring)
+
+| Field | Detail |
+|-------|--------|
+| **Status** | ⬜ todo |
+| **Branch** | `test/monitoring-parity` |
+| **Files** | `tests/test_monitoring_parity.py` |
+| **Done when** | Same calculate request produces equivalent snapshot fields under both backends |
+
+---
+
+### Task 17.2 — Concurrency under monitoring backend
+
+| Field | Detail |
+|-------|--------|
+| **Status** | ⬜ todo |
+| **Files** | extend `tests/test_concurrency.py` or parametrize backend |
+| **Done when** | Parallel HTTP passes with `HYPERPROBE_BACKEND=monitoring` |
+
+---
+
+## PR-19 — `research/deque-queue` (optional)
+
+### Task 18.1 — Benchmark + decision doc
+
+| Field | Detail |
+|-------|--------|
+| **Status** | ⬜ optional |
+| **Branch** | `research/deque-queue` |
+| **Done when** | Document: `deque(maxlen=N)` drops **oldest** not newest — different from R23; only adopt if benchmark proves benefit |
+
+**Recommendation:** Skip unless PR-18 complete and queue contention measured.
+
+---
+
+## PR-20 — `research/import-hook` (optional spike)
+
+### Task 19.1 — sys.meta_path spike + reject/accept note
+
+| Field | Detail |
+|-------|--------|
+| **Status** | ⬜ optional |
+| **Done when** | One-page note: import hooks vs bootstrap attach; likely **reject** for assignment alignment |
+
+---
+
+## v2 — PR-15 sync note (submission repo only)
+
+On **`hyperprobe-v2`**, PR-15 is **not required** for experiments. When submitting assignment:
+
+1. Work in renamed `Desktop\hyperprobe` (from `temppp`)
+2. Run PR-15 workflow from section above (README only)
+3. After merge, optionally cherry-pick README to v2: `git fetch submission && git cherry-pick <hash>`
+
+**Local doc sync already copied to hyperprobev2:** `README.md`, updated `TASK_CHECKLIST.md`, `COMPLIANCE_CHECKLIST.md`, `CONTEXT.md`, `learning/`.
+
+---
+
+*Last updated: 2026-06-17 — v2 experimental PR-16–PR-20 added; clone at hyperprobev2*
