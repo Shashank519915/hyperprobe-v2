@@ -30,7 +30,7 @@ Plan reference: `notes/IMPLEMENTATION_PLAN.md` · Design: `notes/ARCHITECTURE_V2
 | PR-15 | `docs/readme` | 14.1 | 0/1 | 🔄 ready (local README; **submit on `hyperprobe` repo**, not v2) |
 | PR-16 | `feat/monitoring-backend` | 15.1–15.4 | 4/4 | ✅ merged (PR #1, `ad247c9`) |
 | PR-17 | `feat/monitoring-tracer` | 16.1–16.3 | 3/3 | ✅ merged (PR #2, `57b401c`) |
-| PR-18 | `test/monitoring-parity` | 17.1–17.2 | 1/2 | 🔄 in progress |
+| PR-18 | `test/monitoring-parity` | 17.1–17.2 | 2/2 | 🔄 in progress |
 | PR-19 | `research/deque-queue` | 18.1 | 0/1 | ⬜ optional |
 | PR-20 | `research/import-hook` | 19.1 | 0/1 | ⬜ optional / spike only |
 
@@ -3465,7 +3465,7 @@ python -m pytest tests/ -q
 
 **Placeholder commit:** `test(agent): add settrace vs monitoring parity suite`
 
-**Actual commit hash:** *(pending user commit)*
+**Actual commit hash:** `95ea936`
 
 **Actual commit message:**
 
@@ -3485,9 +3485,40 @@ test(agent): add settrace vs monitoring parity suite
 
 | Field | Detail |
 |-------|--------|
-| **Status** | ⬜ todo |
-| **Files** | extend `tests/test_concurrency.py` or parametrize backend |
+| **Status** | ✅ done |
+| **Branch** | `test/monitoring-parity` |
+| **Files** | `tests/test_concurrency.py` |
 | **Done when** | Parallel HTTP passes with `HYPERPROBE_BACKEND=monitoring` |
+
+**Delivered:**
+
+- Parametrize `bootstrap_stack` over `settrace` and `monitoring` backends
+- Both concurrency tests run per backend (`[settrace]`, `[monitoring]`) — 4 cases total
+- Renamed test/docstrings to say "instrumentation" (backend-agnostic)
+
+**Verification:**
+
+```powershell
+python -m pytest tests/test_concurrency.py -q
+# → 4 passed
+python -m pytest tests/ -q
+# → 197 passed
+```
+
+**Placeholder commit:** `test(agent): parametrize concurrency tests for monitoring backend`
+
+**Actual commit hash:** *(pending user commit)*
+
+**Actual commit message:**
+
+```text
+test(agent): parametrize concurrency tests for monitoring backend
+
+- Extend tests/test_concurrency.py: bootstrap_stack runs settrace + monitoring
+- Parallel HTTP completion and snapshot emission verified under both backends
+- Update TASK_CHECKLIST.md and CONTEXT.md (PR-18 tasks 17.1–17.2 complete)
+- Verified: concurrency 4 passed; full suite 197 passed
+```
 
 ---
 
@@ -3528,4 +3559,4 @@ On **`hyperprobe-v2`**, PR-15 is **not required** for experiments. When submitti
 
 ---
 
-*Last updated: 2026-06-18 — PR-18 task 17.1 parity tests; PR-17 merged `57b401c`*
+*Last updated: 2026-06-18 — PR-18 tasks 17.1 (`95ea936`) + 17.2 concurrency parametrized; PR-17 merged `57b401c`*

@@ -1,4 +1,4 @@
-"""Concurrent HTTP under trace — non-halting instrumentation (R13)."""
+"""Concurrent HTTP under instrumentation — non-halting capture (R13)."""
 
 import json
 import threading
@@ -8,7 +8,12 @@ from http.client import HTTPConnection
 
 import pytest
 
-from agent.bootstrap import DEFAULT_BREAKPOINTS_PATH, start_agent
+from agent.bootstrap import (
+    BACKEND_MONITORING,
+    BACKEND_SETTRACE,
+    DEFAULT_BREAKPOINTS_PATH,
+    start_agent,
+)
 from target.server import create_server
 
 
@@ -19,13 +24,14 @@ def _wait_for_control(runtime, timeout: float = 2.0) -> None:
     assert runtime.control_server._server is not None  # noqa: SLF001
 
 
-@pytest.fixture
-def bootstrap_stack(tmp_path):
+@pytest.fixture(params=[BACKEND_SETTRACE, BACKEND_MONITORING], ids=["settrace", "monitoring"])
+def bootstrap_stack(tmp_path, request):
     runtime = start_agent(
         breakpoints_path=DEFAULT_BREAKPOINTS_PATH,
         snapshots_dir=tmp_path,
         control_host="127.0.0.1",
         control_port=0,
+        backend=request.param,
     )
     _wait_for_control(runtime)
     server = create_server("127.0.0.1", 0)
@@ -50,8 +56,8 @@ def _http_get(port: int, path: str) -> tuple[int, dict]:
     return response.status, payload
 
 
-def test_concurrent_calculate_requests_complete_under_trace(bootstrap_stack):
-    """Many parallel calculator requests finish with 200 while tracing is active."""
+def test_concurrent_calculate_requests_complete_under_instrumentation(bootstrap_stack):
+    """Many parallel calculator requests finish with 200 while instrumentation is active."""
     _runtime, target_port, _snapshots_dir = bootstrap_stack
     paths = [
         f"/calculate?op=add&a={a}&b={b}"
@@ -75,7 +81,7 @@ def test_concurrent_calculate_requests_complete_under_trace(bootstrap_stack):
 
 
 def test_concurrent_requests_still_produce_snapshots(bootstrap_stack):
-    """Tracing under load still emits snapshots without blocking requests."""
+    """Instrumentation under load still emits snapshots without blocking requests."""
     runtime, target_port, snapshots_dir = bootstrap_stack
     paths = [
         f"/calculate?op=add&a=10&b=20"

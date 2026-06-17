@@ -572,12 +572,17 @@ Append newest entries at the **top**.
 
 ---
 
-### 2026-06-18 — v2 task 17.1 complete (local)
+### 2026-06-18 — v2 task 17.2 complete (local)
 
-- Added `tests/test_monitoring_parity.py` — settrace vs monitoring on same calculate request (3 tests)
+- Parametrize `tests/test_concurrency.py` over `settrace` and `monitoring` backends
+- Parallel HTTP completion + snapshot emission verified under monitoring (4 concurrency cases)
+- Verified: concurrency 4 passed; full suite 197 passed
+- Next: commit 17.2; PR-18 merge checklist + open PR
+
+### 2026-06-18 — v2 task 17.1 pushed (`95ea936`)
+
+- `tests/test_monitoring_parity.py` — settrace vs monitoring parity (3 tests); CI green
 - PR-17 merged: PR #2 `57b401c`
-- Verified: parity 3 passed; full suite 195 passed
-- Next: task 17.2 (concurrency under monitoring)
 
 ### 2026-06-18 — v2 PR-17 merged (`57b401c`)
 
@@ -657,7 +662,7 @@ Append newest entries at the **top**.
 
 ## Git workflow
 
-**PR-18** on `test/monitoring-parity` — task 17.1 done; next 17.2.
+**PR-18** on `test/monitoring-parity` — tasks 17.1 (`95ea936`) + 17.2 done locally; commit 17.2 then open PR.
 
 **PR-17** merged (`57b401c`). **PR-16** merged (`ad247c9`).
 
