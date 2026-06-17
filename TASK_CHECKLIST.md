@@ -29,8 +29,8 @@ Plan reference: `notes/IMPLEMENTATION_PLAN.md` · Design: `notes/ARCHITECTURE_V2
 | PR-14 | `test/concurrency` | 13.1–13.2 | 2/2 | ✅ merged |
 | PR-15 | `docs/readme` | 14.1 | 0/1 | 🔄 ready (local README; **submit on `hyperprobe` repo**, not v2) |
 | PR-16 | `feat/monitoring-backend` | 15.1–15.4 | 4/4 | ✅ merged (PR #1, `ad247c9`) |
-| PR-17 | `feat/monitoring-tracer` | 16.1–16.3 | 3/3 | 🔄 ready for PR |
-| PR-18 | `test/monitoring-parity` | 17.1–17.2 | 0/2 | ⬜ todo |
+| PR-17 | `feat/monitoring-tracer` | 16.1–16.3 | 3/3 | ✅ merged (PR #2, `57b401c`) |
+| PR-18 | `test/monitoring-parity` | 17.1–17.2 | 2/2 | 🔄 in progress |
 | PR-19 | `research/deque-queue` | 18.1 | 0/1 | ⬜ optional |
 | PR-20 | `research/import-hook` | 19.1 | 0/1 | ⬜ optional / spike only |
 
@@ -3298,7 +3298,7 @@ docker compose config
 
 **Placeholder commit:** `feat(agent): wire MonitoringTracer into bootstrap`
 
-**Actual commit hash:** *(pending user commit)*
+**Actual commit hash:** `505ec30`
 
 **Actual commit message:**
 
@@ -3316,12 +3316,114 @@ feat(agent): wire MonitoringTracer into bootstrap
 
 **PR-17 merge checklist:**
 
-- [x] Tasks 16.1–16.3 ✅ (`1c3aa33`, `fcba924`, pending 16.3)
+- [x] Tasks 16.1–16.3 ✅ (`1c3aa33`, `fcba924`, `505ec30`)
 - [x] `HYPERPROBE_BACKEND=monitoring` produces seed-method-add snapshot (bootstrap test)
 - [x] Default `settrace` path unchanged (bootstrap_stack tests)
 - [x] Full suite 192 passed
-- [ ] Open PR `feat/monitoring-tracer` → `main` on **hyperprobe-v2**
-- [ ] Merge to `main` (PR #2 on v2)
+- [x] CI green on branch (user verified)
+- [x] Open PR `feat/monitoring-tracer` → `main` on **hyperprobe-v2**
+- [x] Merge to `main` (PR #2, `57b401c`)
+
+**Git — open PR (branch already pushed):**
+
+```powershell
+git checkout feat/monitoring-tracer
+git pull origin feat/monitoring-tracer
+
+# Optional: commit this checklist update
+git add TASK_CHECKLIST.md CONTEXT.md
+git commit -m "docs: PR-17 merge checklist and PR draft" -m "- Record task 16.3 commit 505ec30" -m "- Add full GitHub PR body for MonitoringTracer"
+git push origin feat/monitoring-tracer
+
+gh pr create --base main --head feat/monitoring-tracer `
+  --title "feat(agent): MonitoringTracer and bootstrap wiring (PR-17)" `
+  --body "## Summary`nPort Tracer capture logic to PEP 669 MonitoringTracer. Bootstrap monitoring backend now produces real snapshots end-to-end; Docker Compose defaults to monitoring in v2.`n`n## Tasks included`n`n### Task 16.1 — MonitoringTracer ENTRY`n- **Files:** agent/monitoring_tracer.py, tests/test_monitoring_tracer.py`n- **Commit:** 1c3aa33`n- Global PY_START tier-1 filter; function/method ENTRY enqueue RawCapture`n`n### Task 16.2 — RETURN + file_line`n- **Commit:** fcba924`n- on_py_return + on_line; scoped set_local_events for tier-2`n- RETURN/BOTH and file_line parity with v1 Tracer tests`n`n### Task 16.3 — Bootstrap wiring`n- **Commit:** 505ec30`n- Replace stub callbacks with MonitoringTracer in start_agent`n- docker-compose.yml: HYPERPROBE_BACKEND=monitoring default`n- Bootstrap end-to-end monitoring snapshot test`n`n## Depends on`n- PR #1 (PR-16): monitoring installer + HYPERPROBE_BACKEND env switch (merged ad247c9)`n`n## What is intentionally not in this PR`n- Formal settrace vs monitoring parity suite (PR-18)`n- Concurrency under monitoring backend (PR-18 task 17.2)`n`n## Verification (reviewer)`n`n````powershell`npython -m pytest tests/test_monitoring_tracer.py tests/test_bootstrap.py -q`npython -m pytest tests/ -q`npython scripts/target_purity_check.py`ndocker compose config`n````n`nExpected: **21 + 192 passed**; purity OK; compose shows HYPERPROBE_BACKEND=monitoring; CI test + docker green.`n`n## Test plan`n- [ ] MonitoringTracer: function/method ENTRY, RETURN, BOTH, file_line`n- [ ] Bootstrap settrace path unchanged (default env)`n- [ ] Bootstrap monitoring path writes seed-method-add snapshot`n- [ ] Target purity passes`n- [ ] CI green on PR"
+```
+
+**Pull request draft** *(paste into GitHub if not using `gh` one-liner above):*
+
+| Field | Value |
+|-------|--------|
+| **When** | After tasks 16.1–16.3 pushed; CI green |
+| **Base ← Compare** | `main` ← `feat/monitoring-tracer` |
+| **Repo** | https://github.com/Shashank519915/hyperprobe-v2 |
+| **Title** | `feat(agent): MonitoringTracer and bootstrap wiring (PR-17)` |
+
+**Description** (paste into GitHub PR body):
+
+```markdown
+## Summary
+Port `Tracer` capture logic to PEP 669 `MonitoringTracer`. The monitoring backend (`HYPERPROBE_BACKEND=monitoring`) now produces real snapshots end-to-end through the same capture → queue → worker pipeline. Docker Compose in v2 defaults to the monitoring backend.
+
+## Tasks included
+
+### Task 16.1 — MonitoringTracer ENTRY via PY_START
+- **Files:** `agent/monitoring_tracer.py`, `tests/test_monitoring_tracer.py`
+- **Commit:** `1c3aa33`
+- Global `PY_START` tier-1 filter (mirrors `global_trace` on CALL)
+- Function/method ENTRY and BOTH (CALL leg) enqueue `RawCapture` via `capture_raw`
+
+### Task 16.2 — RETURN + file_line events
+- **Files:** `agent/monitoring_tracer.py`, `tests/test_monitoring_tracer.py`
+- **Commit:** `fcba924`
+- `on_py_return` — function/method RETURN/BOTH + file_line RETURN/BOTH
+- `on_line` — file_line ENTRY/BOTH via scoped `set_local_events(LINE | PY_RETURN)`
+- 13 monitoring tracer tests (parity with v1 `test_tracer_global` / `test_file_line_bp` patterns)
+
+### Task 16.3 — Bootstrap + Docker wiring
+- **Files:** `agent/bootstrap.py`, `docker-compose.yml`, `README.md`, `tests/test_bootstrap.py`
+- **Commit:** `505ec30`
+- Replace PR-16 stub callbacks with `MonitoringTracer` + `activate_global_events`
+- `AgentRuntime.tracer`: `Tracer | MonitoringTracer`; deactivate events on shutdown
+- `docker-compose.yml`: default `HYPERPROBE_BACKEND=monitoring` for v2 demo
+- `test_bootstrap_monitoring_backend_calculate_produces_snapshot` — HTTP → JSON snapshot
+
+## Depends on
+- **PR #1 (PR-16)** — `MonitoringInstaller`, `HYPERPROBE_BACKEND` env switch (merged `ad247c9`)
+
+## What is intentionally not in this PR
+- **Parity test suite** — formal settrace vs monitoring equivalence (PR-18)
+- **Concurrency under monitoring** — parallel HTTP with monitoring backend (PR-18)
+- No changes to `target/` (purity preserved)
+
+## Architecture notes
+- Same pipeline: `capture_raw` → bounded queue → `SnapshotWorker` → JSON
+- Tier-1: global `PY_START` / `PY_RETURN` with fast reject
+- Tier-2: `set_local_events` on watched code objects for LINE + return tracking
+- Agent threads: `disable_monitoring_on_current_thread()` (from PR-16)
+
+## Verification (reviewer)
+
+```powershell
+python -m pytest tests/test_monitoring_tracer.py tests/test_bootstrap.py -q
+python -m pytest tests/ -q
+python scripts/target_purity_check.py
+docker compose config
+```
+
+Expected:
+- Monitoring + bootstrap tests: **21 passed**
+- Full suite: **192 passed**
+- Target purity: OK
+- `docker compose config` shows `HYPERPROBE_BACKEND: monitoring`
+- CI: **test** + **docker** jobs green
+
+Optional Docker smoke:
+
+```powershell
+docker compose up --build
+curl.exe "http://localhost:8080/calculate?op=add&a=10&b=20"
+dir snapshots\
+docker compose down
+```
+
+## Test plan
+- [ ] `MonitoringTracer` — ENTRY, RETURN, BOTH, file_line, combined method+line
+- [ ] Bootstrap default (`settrace`) — existing integration tests unchanged
+- [ ] Bootstrap `monitoring` — `seed-method-add` snapshot with `AdditionEngine.add` in stack
+- [ ] `target/` purity script passes
+- [ ] CI green on PR
+```
 
 **PR title:** `feat(agent): MonitoringTracer and bootstrap wiring (PR-17)`
 
@@ -3341,10 +3443,41 @@ git checkout -b test/monitoring-parity
 
 | Field | Detail |
 |-------|--------|
-| **Status** | ⬜ todo |
+| **Status** | ✅ done |
 | **Branch** | `test/monitoring-parity` |
 | **Files** | `tests/test_monitoring_parity.py` |
 | **Done when** | Same calculate request produces equivalent snapshot fields under both backends |
+
+**Delivered:**
+
+- `tests/test_monitoring_parity.py` — 3 tests comparing `settrace` vs `monitoring` on `GET /calculate?op=add&a=10&b=20`
+- Parity view: breakpoint metadata + `target/` stack frames (ignores volatile socket/thread locals)
+- Asserts `seed-method-add` ENTRY and `seed-line-addition-return` RETURN equivalence + matching breakpoint id set
+
+**Verification:**
+
+```powershell
+python -m pytest tests/test_monitoring_parity.py -q
+# → 3 passed in ~6.6s
+python -m pytest tests/ -q
+# → 195 passed
+```
+
+**Placeholder commit:** `test(agent): add settrace vs monitoring parity suite`
+
+**Actual commit hash:** `95ea936`
+
+**Actual commit message:**
+
+```text
+test(agent): add settrace vs monitoring parity suite
+
+- Add tests/test_monitoring_parity.py comparing snapshot fields per backend
+- Same calculate request: seed-method-add ENTRY and seed-line-addition-return RETURN
+- Compare target/ stack frames; ignore ephemeral stdlib socket/thread locals
+- Update TASK_CHECKLIST.md (PR-17 merged 57b401c) and CONTEXT.md
+- Verified: parity 3 passed; full suite 195 passed
+```
 
 ---
 
@@ -3352,9 +3485,40 @@ git checkout -b test/monitoring-parity
 
 | Field | Detail |
 |-------|--------|
-| **Status** | ⬜ todo |
-| **Files** | extend `tests/test_concurrency.py` or parametrize backend |
+| **Status** | ✅ done |
+| **Branch** | `test/monitoring-parity` |
+| **Files** | `tests/test_concurrency.py` |
 | **Done when** | Parallel HTTP passes with `HYPERPROBE_BACKEND=monitoring` |
+
+**Delivered:**
+
+- Parametrize `bootstrap_stack` over `settrace` and `monitoring` backends
+- Both concurrency tests run per backend (`[settrace]`, `[monitoring]`) — 4 cases total
+- Renamed test/docstrings to say "instrumentation" (backend-agnostic)
+
+**Verification:**
+
+```powershell
+python -m pytest tests/test_concurrency.py -q
+# → 4 passed
+python -m pytest tests/ -q
+# → 197 passed
+```
+
+**Placeholder commit:** `test(agent): parametrize concurrency tests for monitoring backend`
+
+**Actual commit hash:** *(pending user commit)*
+
+**Actual commit message:**
+
+```text
+test(agent): parametrize concurrency tests for monitoring backend
+
+- Extend tests/test_concurrency.py: bootstrap_stack runs settrace + monitoring
+- Parallel HTTP completion and snapshot emission verified under both backends
+- Update TASK_CHECKLIST.md and CONTEXT.md (PR-18 tasks 17.1–17.2 complete)
+- Verified: concurrency 4 passed; full suite 197 passed
+```
 
 ---
 
@@ -3395,4 +3559,4 @@ On **`hyperprobe-v2`**, PR-15 is **not required** for experiments. When submitti
 
 ---
 
-*Last updated: 2026-06-18 — PR-17 ready for merge (`feat/monitoring-tracer`; 16.2 `fcba924`)*
+*Last updated: 2026-06-18 — PR-18 tasks 17.1 (`95ea936`) + 17.2 concurrency parametrized; PR-17 merged `57b401c`*
