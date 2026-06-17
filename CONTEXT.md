@@ -12,8 +12,8 @@ See also: [`CODE_STYLE.md`](CODE_STYLE.md) · local design docs in `notes/` (git
 | **GitHub** | https://github.com/Shashank519915/hyperprobe.git |
 | **Structure** | Monorepo — `target/` + `agent/` in one repo |
 | **Default branch** | `main` |
-| **Active branch** | `chore/ci-hardening` (PR-13) |
-| **CI workflows** | `ci` (pytest + purity) · `Dependency Graph` (Dependabot — automatic) |
+| **Active branch** | `main` (README draft local; push on `docs/readme`) |
+| **CI workflows** | `ci` — `test` (pytest + purity) + `docker` (compose build) · Dependabot |
 
 ---
 
@@ -83,6 +83,18 @@ hyperprobe/
 ## Progress log
 
 Append newest entries at the **top**.
+
+### 2026-06-16 — PR-14 merged (concurrency + integration)
+
+- PR #14 merged to `main` (merge `9d2c894`); CI green; **163** pytest passed
+- `tests/test_concurrency.py` — parallel HTTP under trace (R13 closed)
+- `tests/test_integration.py` — full bootstrap + runtime POST breakpoint (R1, R25)
+- Only remaining deliverable: R33 human-written README on `docs/readme` branch
+
+### 2026-06-16 — PR-13 merged
+
+- PR #13 merged to `main` (merge `4063eec`); CI green (test + docker jobs)
+- Task 12.2: purity script finalized (`e090fb3`); task 12.3: docker CI job (`da473d4`)
 
 ### 2026-06-16 — PR-12 merged
 
@@ -560,9 +572,60 @@ Append newest entries at the **top**.
 
 ---
 
+### 2026-06-18 — v2 task 15.4 complete; PR-16 ready
+
+- PR-16 merge checklist + GitHub PR draft filled in `TASK_CHECKLIST.md`
+- Commits on `feat/monitoring-backend`: `b6a361d` (15.1), `d318056` (15.2), `ca4bd7c` (15.3)
+- Pre-PR verify: monitoring tests 17 passed; full suite 178 passed; target purity OK
+- **User action:** open PR on hyperprobe-v2 (`main` ← `feat/monitoring-backend`)
+- After merge: branch `feat/monitoring-tracer` for PR-17
+
+### 2026-06-18 — v2 task 15.3 committed (`ca4bd7c`)
+
+- Pushed `feat(agent): add instrumentation backend env switch`; CI green
+- `HYPERPROBE_BACKEND=settrace|monitoring`; default `settrace`
+- Next was task 15.4 (PR draft)
+
+### 2026-06-18 — v2 task 15.3 complete (local)
+
+- `HYPERPROBE_BACKEND=settrace|monitoring` in `agent/bootstrap.py`; default `settrace`
+- Monitoring path uses stub callbacks until PR-17 `MonitoringTracer`
+- Worker + control server call both trace and monitoring thread disables (R24)
+- `docker-compose.yml` documents opt-in monitoring env (commented)
+- `tests/test_bootstrap.py` — 5 backend tests added (7 total)
+- Recorded committed hashes: task 15.1 `b6a361d`, task 15.2 `d318056`
+- Verified: `python -m pytest tests/test_bootstrap.py -q` → 7 passed; full suite 178 passed
+- Next: task 15.4 (PR-16 merge checklist + open PR)
+
+### 2026-06-18 — v2 task 15.2 complete (local)
+
+- Added `agent/monitoring_installer.py` — `MonitoringInstaller`, `install_monitoring` / `remove_monitoring`, `disable_monitoring_on_current_thread`
+- Added `tests/test_monitoring_installer.py` — 8 tests (install/remove, R24 thread isolation, reinstall)
+- Thread-local disable wraps callbacks (PEP 669 is per-interpreter, not per-thread like settrace)
+- Verified: `python -m pytest tests/test_monitoring_installer.py -q` → 8 passed; full suite 173 passed
+- Next: task 15.3 (`HYPERPROBE_BACKEND` env switch in bootstrap)
+
+### 2026-06-18 — v2 task 15.1 complete (local)
+
+- Branch: `feat/monitoring-backend` (create from `main` before commit)
+- Added `tests/test_monitoring_spike.py` — PY_START/PY_RETURN on `AdditionEngine.add`; local events skip unscoped code
+- Added `notes/MONITORING_SPIKE.md` — tool_id, event codes, settrace replacement rule
+- Verified: `python -m pytest tests/test_monitoring_spike.py -q` → 2 passed (Python 3.12.10)
+- Next: task 15.2 (`agent/monitoring_installer.py`)
+
+---
+
 ## Git workflow
 
-PR-12 merged (`6e9b773`). **PR-13** on `chore/ci-hardening` — tasks 12.2–12.3.
+**PR-16** ready on `feat/monitoring-backend` (hyperprobe-v2) — open PR, merge, then:
+
+```powershell
+git checkout main
+git pull origin main
+git checkout -b feat/monitoring-tracer
+```
+
+PR-12 merged (`6e9b773`). PR-13/14 merged on submission track.
 
 After each PR merges: `git checkout main` → `git pull origin main` → new feature branch.
 

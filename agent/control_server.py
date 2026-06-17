@@ -9,6 +9,7 @@ from typing import Any
 
 from agent.breakpoints import breakpoint_from_dict, breakpoint_to_dict
 from agent.installer import disable_tracing_on_current_thread
+from agent.monitoring_installer import disable_monitoring_on_current_thread
 from agent.registry import BreakpointRegistry
 
 DEFAULT_CONTROL_HOST = "0.0.0.0"
@@ -31,6 +32,7 @@ class _ControlHTTPServer(ThreadingHTTPServer):
 
     def process_request_thread(self, request, client_address) -> None:  # noqa: ANN001
         disable_tracing_on_current_thread()
+        disable_monitoring_on_current_thread()
         super().process_request_thread(request, client_address)
 
 
@@ -141,6 +143,7 @@ class AgentControlServer:
 
     def _serve(self) -> None:
         disable_tracing_on_current_thread()
+        disable_monitoring_on_current_thread()
         self._server = _ControlHTTPServer(
             (self._host, self._port),
             _ControlHandler,
