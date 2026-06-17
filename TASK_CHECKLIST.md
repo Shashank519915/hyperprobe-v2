@@ -28,7 +28,7 @@ Plan reference: `notes/IMPLEMENTATION_PLAN.md` · Design: `notes/ARCHITECTURE_V2
 | PR-13 | `chore/ci-hardening` | 12.2–12.3 | 2/2 | ✅ merged |
 | PR-14 | `test/concurrency` | 13.1–13.2 | 2/2 | ✅ merged |
 | PR-15 | `docs/readme` | 14.1 | 0/1 | 🔄 ready (local README; **submit on `hyperprobe` repo**, not v2) |
-| PR-16 | `feat/monitoring-backend` | 15.1–15.4 | 1/4 | 🔄 in progress |
+| PR-16 | `feat/monitoring-backend` | 15.1–15.4 | 2/4 | 🔄 in progress |
 | PR-17 | `feat/monitoring-tracer` | 16.1–16.3 | 0/3 | ⬜ todo |
 | PR-18 | `test/monitoring-parity` | 17.1–17.2 | 0/2 | ⬜ todo |
 | PR-19 | `research/deque-queue` | 18.1 | 0/1 | ⬜ optional |
@@ -2966,10 +2966,16 @@ git push origin feat/monitoring-backend
 
 | Field | Detail |
 |-------|--------|
-| **Status** | ⬜ todo |
+| **Status** | ✅ done |
 | **Branch** | `feat/monitoring-backend` |
 | **Files** | `agent/monitoring_installer.py`, `tests/test_monitoring_installer.py` |
 | **Done when** | Install/remove monitoring tool; disable on agent threads; tests pass |
+
+**Delivered:**
+
+- `agent/monitoring_installer.py` — `MonitoringInstaller`, `install_monitoring` / `remove_monitoring`, shared `DEBUGGER_ID` (0)
+- `disable_monitoring_on_current_thread()` — thread-local flag; callbacks wrapped to no-op on agent threads (PEP 669 has no per-thread VM disable)
+- `tests/test_monitoring_installer.py` — 8 tests: install/remove, idempotency, validation, R24 thread isolation, reinstall
 
 **Design:**
 
@@ -2980,11 +2986,27 @@ git push origin feat/monitoring-backend
 **Verification:**
 
 ```powershell
-pytest tests/test_monitoring_installer.py -q
-pytest tests/ -q   # v1 tests still pass — settrace path untouched until task 15.3
+python -m pytest tests/test_monitoring_installer.py -q
+# → 8 passed in 0.04s
+python -m pytest tests/ -q
+# → 173 passed (v1 settrace path untouched)
 ```
 
 **Placeholder commit:** `feat(agent): add sys.monitoring installer`
+
+**Actual commit hash:** *(pending user commit)*
+
+**Actual commit message:**
+
+```text
+feat(agent): add sys.monitoring installer
+
+- Add MonitoringInstaller with install_monitoring/remove_monitoring helpers
+- Claim shared DEBUGGER_ID tool slot; register wrapped event callbacks
+- Add disable_monitoring_on_current_thread for R24 agent-thread isolation
+- Add tests/test_monitoring_installer.py (8 tests)
+- Verified: installer tests 8 passed; full suite 173 passed
+```
 
 ---
 

@@ -572,6 +572,14 @@ Append newest entries at the **top**.
 
 ---
 
+### 2026-06-18 — v2 task 15.2 complete (local)
+
+- Added `agent/monitoring_installer.py` — `MonitoringInstaller`, `install_monitoring` / `remove_monitoring`, `disable_monitoring_on_current_thread`
+- Added `tests/test_monitoring_installer.py` — 8 tests (install/remove, R24 thread isolation, reinstall)
+- Thread-local disable wraps callbacks (PEP 669 is per-interpreter, not per-thread like settrace)
+- Verified: `python -m pytest tests/test_monitoring_installer.py -q` → 8 passed; full suite 173 passed
+- Next: task 15.3 (`HYPERPROBE_BACKEND` env switch in bootstrap)
+
 ### 2026-06-18 — v2 task 15.1 complete (local)
 
 - Branch: `feat/monitoring-backend` (create from `main` before commit)
