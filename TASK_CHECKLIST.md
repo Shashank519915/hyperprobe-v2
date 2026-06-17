@@ -30,9 +30,9 @@ Plan reference: `notes/IMPLEMENTATION_PLAN.md` · Design: `notes/ARCHITECTURE_V2
 | PR-15 | `docs/readme` | 14.1 | 0/1 | 🔄 ready (local README; **submit on `hyperprobe` repo**, not v2) |
 | PR-16 | `feat/monitoring-backend` | 15.1–15.4 | 4/4 | ✅ merged (PR #1, `ad247c9`) |
 | PR-17 | `feat/monitoring-tracer` | 16.1–16.3 | 3/3 | ✅ merged (PR #2, `57b401c`) |
-| PR-18 | `test/monitoring-parity` | 17.1–17.2 | 2/2 | 🔄 in progress |
-| PR-19 | `research/deque-queue` | 18.1 | 0/1 | ⬜ optional |
-| PR-20 | `research/import-hook` | 19.1 | 0/1 | ⬜ optional / spike only |
+| PR-18 | `test/monitoring-parity` | 17.1–17.3 | 3/3 | ✅ merged (PR #3, `2331920`) |
+| PR-19 | `research/deque-queue` | 18.1 | 0/1 | ⬜ skip (analysis done) |
+| PR-20 | `research/import-hook` | 19.1 | 0/1 | ⬜ skip (analysis done) |
 
 **Repo map:**
 
@@ -3507,7 +3507,7 @@ python -m pytest tests/ -q
 
 **Placeholder commit:** `test(agent): parametrize concurrency tests for monitoring backend`
 
-**Actual commit hash:** *(pending user commit)*
+**Actual commit hash:** `f7417d6`
 
 **Actual commit message:**
 
@@ -3522,17 +3522,148 @@ test(agent): parametrize concurrency tests for monitoring backend
 
 ---
 
+### Task 17.3 — PR-18 merge checklist + PR draft
+
+| Field | Detail |
+|-------|--------|
+| **Status** | ✅ done |
+| **Branch** | `test/monitoring-parity` |
+| **Done when** | Checklist filled; PR title + body ready for hyperprobe-v2 |
+
+**Verification (pre-PR):**
+
+```powershell
+python -m pytest tests/test_monitoring_parity.py tests/test_concurrency.py -q
+python -m pytest tests/ -q
+python scripts/target_purity_check.py
+# → parity 3 + concurrency 4 passed; full suite 197 passed; purity OK
+```
+
+**PR-18 merge checklist:**
+
+- [x] Tasks 17.1–17.2 ✅ (`95ea936`, `f7417d6`)
+- [x] Parity: `seed-method-add` ENTRY + `seed-line-addition-return` RETURN equivalence (settrace vs monitoring)
+- [x] Parity: matching breakpoint id set under both backends
+- [x] Concurrency: parallel HTTP completes under `monitoring` backend
+- [x] Concurrency: snapshots still emitted under load (both backends)
+- [x] Full suite 197 passed
+- [x] CI green on branch (user verified)
+- [x] Open PR `test/monitoring-parity` → `main` on **hyperprobe-v2**
+- [x] Merge to `main` (PR #3, `2331920`)
+
+**Git — open PR (branch already pushed):**
+
+```powershell
+git checkout test/monitoring-parity
+git pull origin test/monitoring-parity
+
+# Optional: commit this checklist update first
+git add TASK_CHECKLIST.md CONTEXT.md
+git commit -m "docs: PR-18 merge checklist and PR draft" -m "- Record task 17.2 commit f7417d6" -m "- Add full GitHub PR body for monitoring parity + concurrency"
+git push origin test/monitoring-parity
+
+gh pr create --base main --head test/monitoring-parity `
+  --title "test(agent): settrace vs monitoring parity and concurrency (PR-18)" `
+  --body "## Summary`nFormal test coverage proving the PEP 669 monitoring backend produces equivalent snapshots to sys.settrace and handles concurrent HTTP load without blocking requests.`n`n## Tasks included`n`n### Task 17.1 — Parity test suite`n- **Files:** tests/test_monitoring_parity.py`n- **Commit:** 95ea936`n- Same GET /calculate?op=add&a=10&b=20 under settrace vs monitoring`n- Compares breakpoint metadata + target/ stack frames (ignores volatile stdlib/socket locals)`n- Asserts seed-method-add ENTRY and seed-line-addition-return RETURN equivalence`n- Asserts matching breakpoint id set`n`n### Task 17.2 — Concurrency under monitoring`n- **Files:** tests/test_concurrency.py`n- **Commit:** f7417d6`n- Parametrize bootstrap_stack over settrace and monitoring backends`n- Parallel HTTP completion (24 requests, 12 workers) under both backends`n- Snapshot emission under concurrent load (16 requests, 8 workers)`n`n## Depends on`n- PR #2 (PR-17): MonitoringTracer + bootstrap wiring (merged 57b401c)`n- PR #1 (PR-16): monitoring installer + HYPERPROBE_BACKEND env switch (merged ad247c9)`n`n## What is intentionally not in this PR`n- No agent/ or target/ production code changes — tests only`n- deque queue research (PR-19, optional)`n- import-hook spike (PR-20, optional)`n`n## Verification (reviewer)`n`n````powershell`npython -m pytest tests/test_monitoring_parity.py tests/test_concurrency.py -q`npython -m pytest tests/ -q`npython scripts/target_purity_check.py`n````n`nExpected: **parity 3 + concurrency 4 passed**; full suite **197 passed**; purity OK; CI test + docker green.`n`n## Test plan`n- [ ] Parity: seed-method-add ENTRY fields match settrace vs monitoring`n- [ ] Parity: seed-line-addition-return RETURN fields match`n- [ ] Parity: breakpoint id sets identical`n- [ ] Concurrency: 24 parallel calculate requests return 200 under monitoring`n- [ ] Concurrency: snapshots written under load (monitoring + settrace)`n- [ ] Target purity passes`n- [ ] CI green on PR"
+```
+
+**Pull request draft** *(paste into GitHub if not using `gh` one-liner above):*
+
+| Field | Value |
+|-------|--------|
+| **When** | After tasks 17.1–17.2 pushed; CI green |
+| **Base ← Compare** | `main` ← `test/monitoring-parity` |
+| **Repo** | https://github.com/Shashank519915/hyperprobe-v2 |
+| **Title** | `test(agent): settrace vs monitoring parity and concurrency (PR-18)` |
+
+**Description** (paste into GitHub PR body):
+
+```markdown
+## Summary
+Formal test coverage proving the PEP 669 `monitoring` backend produces equivalent snapshots to `sys.settrace` and handles concurrent HTTP load without blocking requests. No production code changes — tests only.
+
+## Tasks included
+
+### Task 17.1 — Parity test suite (settrace vs monitoring)
+- **Files:** `tests/test_monitoring_parity.py`
+- **Commit:** `95ea936`
+- Same `GET /calculate?op=add&a=10&b=20` under both backends
+- Parity view: breakpoint metadata + `target/` stack frames (ignores volatile stdlib/socket/thread locals)
+- Asserts `seed-method-add` ENTRY and `seed-line-addition-return` RETURN equivalence
+- Asserts matching breakpoint id set
+
+### Task 17.2 — Concurrency under monitoring backend
+- **Files:** `tests/test_concurrency.py`
+- **Commit:** `f7417d6`
+- Parametrize `bootstrap_stack` over `settrace` and `monitoring`
+- Parallel HTTP completion (24 requests, 12 workers) under both backends
+- Snapshot emission under concurrent load (16 requests, 8 workers)
+
+## Depends on
+- **PR #2 (PR-17)** — `MonitoringTracer` + bootstrap wiring (merged `57b401c`)
+- **PR #1 (PR-16)** — `MonitoringInstaller`, `HYPERPROBE_BACKEND` env switch (merged `ad247c9`)
+
+## What is intentionally not in this PR
+- **No `agent/` or `target/` production code changes** — tests only
+- **deque queue research** — PR-19 (optional)
+- **import-hook spike** — PR-20 (optional)
+
+## Architecture notes
+- Parity tests isolate comparable fields: breakpoint id/name/mode/event, return value, `target/` stack locals
+- Concurrency tests reuse the same HTTP + bootstrap stack pattern as PR-14; now backend-parametrized
+- Default `settrace` path regression covered via `[settrace]` parametrization cases
+
+## Verification (reviewer)
+
+```powershell
+python -m pytest tests/test_monitoring_parity.py tests/test_concurrency.py -q
+python -m pytest tests/ -q
+python scripts/target_purity_check.py
+```
+
+Expected:
+- Parity + concurrency: **7 passed** (3 parity + 4 concurrency)
+- Full suite: **197 passed**
+- Target purity: OK
+- CI: **test** + **docker** jobs green
+
+## Test plan
+- [ ] Parity: `seed-method-add` ENTRY fields match settrace vs monitoring
+- [ ] Parity: `seed-line-addition-return` RETURN fields match
+- [ ] Parity: breakpoint id sets identical
+- [ ] Concurrency: 24 parallel calculate requests return 200 under monitoring
+- [ ] Concurrency: snapshots written under load (monitoring + settrace)
+- [ ] Target purity passes
+- [ ] CI green on PR
+```
+
+---
+
 ## PR-19 — `research/deque-queue` (optional)
 
 ### Task 18.1 — Benchmark + decision doc
 
 | Field | Detail |
 |-------|--------|
-| **Status** | ⬜ optional |
+| **Status** | ⬜ optional — **recommend skip** |
 | **Branch** | `research/deque-queue` |
 | **Done when** | Document: `deque(maxlen=N)` drops **oldest** not newest — different from R23; only adopt if benchmark proves benefit |
 
 **Recommendation:** Skip unless PR-18 complete and queue contention measured.
+
+**Analysis (2026-06-18):**
+
+| Topic | Current (`queue.Queue`) | Proposed (`deque(maxlen=N)`) |
+|-------|-------------------------|------------------------------|
+| **R23 semantics** | `put_nowait` on full → **drop incoming** capture; queue keeps what was already accepted | `append` on full → **evict oldest**; newest capture always wins |
+| **Test contract** | `tests/test_queue_overflow.py` asserts target completes, queue holds 1 item, drops are rate-limited stderr | Would need new tests; behavior diverges from documented R23 |
+| **Default size** | `DEFAULT_CAPTURE_QUEUE_MAXSIZE = 1000` in `agent/worker.py` | Same capacity possible, different eviction policy |
+| **Hot path** | `try/except queue.Full` — rare under normal load | Always O(1) append, no exception — marginal gain |
+| **Measured problem?** | PR-14 + PR-18 concurrency pass under load; no queue contention benchmark shows pain | No evidence yet |
+
+**Decision:** **Do not implement.** R23 intentionally drops *new* work when the worker falls behind (protects target latency). `deque(maxlen)` would silently discard *old* snapshots instead — useful for a “latest state” dashboard, but a different product requirement. Revisit only if you profile sustained queue-full under realistic load and want that semantics change.
+
+**If you still want a minimal deliverable:** one-page note in `notes/` (no code) documenting the above — no branch/PR required.
 
 ---
 
@@ -3542,8 +3673,22 @@ test(agent): parametrize concurrency tests for monitoring backend
 
 | Field | Detail |
 |-------|--------|
-| **Status** | ⬜ optional |
+| **Status** | ⬜ optional — **recommend skip** |
 | **Done when** | One-page note: import hooks vs bootstrap attach; likely **reject** for assignment alignment |
+
+**Analysis (2026-06-18):**
+
+| Topic | Bootstrap attach (current) | `sys.meta_path` / import hooks |
+|-------|---------------------------|--------------------------------|
+| **Assignment R4** | `python -m agent.bootstrap` wires tracer before target serves — explicit external attach | Magic injection during import; harder to explain as “external attach” |
+| **Target purity R3/R14** | `target/` never imports `agent/`; purity script enforces | Hook could instrument without target imports, but obscures boundary |
+| **Ordering** | Deterministic: registry → installer → HTTP server | Depends on import order; edge cases with lazy imports / threads |
+| **settrace + monitoring** | `install_trace` / `install_monitoring` at known startup point | Still need equivalent registration after hook fires |
+| **Assignment value** | Matches architecture doc §5.1 entrypoint | Research curiosity only; no grader requirement |
+
+**Decision:** **Reject for v2.** Bootstrap attach is the assignment-aligned model and already works for both backends. An import-hook spike would add complexity without improving compliance or demo story.
+
+**If you still want a minimal deliverable:** short note in `notes/` comparing approaches (half page) — optional, no PR.
 
 ---
 
@@ -3559,4 +3704,4 @@ On **`hyperprobe-v2`**, PR-15 is **not required** for experiments. When submitti
 
 ---
 
-*Last updated: 2026-06-18 — PR-18 tasks 17.1 (`95ea936`) + 17.2 concurrency parametrized; PR-17 merged `57b401c`*
+*Last updated: 2026-06-18 — PR-18 merged `2331920`; docs/update branch for compliance + learning guides*

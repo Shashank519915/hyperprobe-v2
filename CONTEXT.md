@@ -572,12 +572,23 @@ Append newest entries at the **top**.
 
 ---
 
-### 2026-06-18 — v2 task 17.2 complete (local)
+### 2026-06-18 — v2 PR-18 merged (`2331920`)
+
+- PR #3 `test/monitoring-parity` → `main`; commits `95ea936`, `f7417d6`
+- Parity + concurrency tests; full suite 197 passed
+- Next: `docs/update` (compliance + learning); then `docs/readme` for R33
+
+### 2026-06-18 — v2 task 17.3 complete (local)
+
+- PR-18 merge checklist + full GitHub PR body in `TASK_CHECKLIST.md` § task 17.3
+- Commits on branch: `95ea936` (17.1), `f7417d6` (17.2)
+- Next: optional docs commit; open PR `test/monitoring-parity` → `main`
+
+### 2026-06-18 — v2 task 17.2 pushed (`f7417d6`)
 
 - Parametrize `tests/test_concurrency.py` over `settrace` and `monitoring` backends
 - Parallel HTTP completion + snapshot emission verified under monitoring (4 concurrency cases)
 - Verified: concurrency 4 passed; full suite 197 passed
-- Next: commit 17.2; PR-18 merge checklist + open PR
 
 ### 2026-06-18 — v2 task 17.1 pushed (`95ea936`)
 
@@ -662,7 +673,7 @@ Append newest entries at the **top**.
 
 ## Git workflow
 
-**PR-18** on `test/monitoring-parity` — tasks 17.1 (`95ea936`) + 17.2 done locally; commit 17.2 then open PR.
+**PR-18** merged (`2331920`). **On `docs/update`:** compliance + learning guides. **Next:** `docs/readme` (R33, human-written).
 
 **PR-17** merged (`57b401c`). **PR-16** merged (`ad247c9`).
 
