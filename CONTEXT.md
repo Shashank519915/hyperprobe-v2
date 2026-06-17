@@ -572,6 +572,19 @@ Append newest entries at the **top**.
 
 ---
 
+### 2026-06-18 — v2 task 16.2 complete (local)
+
+- Extended `MonitoringTracer` — `on_py_return`, `on_line`, scoped `set_local_events` for tier-2
+- RETURN/BOTH function/method + file_line ENTRY/BOTH/RETURN parity with v1 tracer tests
+- `tests/test_monitoring_tracer.py` — 13 tests total (+5)
+- Recorded task 16.1 commit `1c3aa33`
+- Verified: monitoring tracer 13 passed; full suite 191 passed
+- Next: task 16.3 (wire MonitoringTracer into bootstrap)
+
+### 2026-06-18 — v2 task 16.1 committed (`1c3aa33`)
+
+- Pushed `feat(agent): MonitoringTracer ENTRY via PY_START`; CI green
+
 ### 2026-06-18 — v2 task 16.1 complete (local)
 
 - Branch: `feat/monitoring-tracer`
@@ -626,7 +639,7 @@ Append newest entries at the **top**.
 
 ## Git workflow
 
-**PR-17** in progress on `feat/monitoring-tracer` — task 16.1 done; next 16.2 RETURN/file_line.
+**PR-17** in progress on `feat/monitoring-tracer` — tasks 16.1–16.2 done; next 16.3 bootstrap wiring.
 
 **PR-16** merged on hyperprobe-v2: PR #1 (`ad247c9`).
 

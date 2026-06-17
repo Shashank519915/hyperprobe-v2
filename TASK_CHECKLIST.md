@@ -29,7 +29,7 @@ Plan reference: `notes/IMPLEMENTATION_PLAN.md` · Design: `notes/ARCHITECTURE_V2
 | PR-14 | `test/concurrency` | 13.1–13.2 | 2/2 | ✅ merged |
 | PR-15 | `docs/readme` | 14.1 | 0/1 | 🔄 ready (local README; **submit on `hyperprobe` repo**, not v2) |
 | PR-16 | `feat/monitoring-backend` | 15.1–15.4 | 4/4 | ✅ merged (PR #1, `ad247c9`) |
-| PR-17 | `feat/monitoring-tracer` | 16.1–16.3 | 1/3 | 🔄 in progress |
+| PR-17 | `feat/monitoring-tracer` | 16.1–16.3 | 2/3 | 🔄 in progress |
 | PR-18 | `test/monitoring-parity` | 17.1–17.2 | 0/2 | ⬜ todo |
 | PR-19 | `research/deque-queue` | 18.1 | 0/1 | ⬜ optional |
 | PR-20 | `research/import-hook` | 19.1 | 0/1 | ⬜ optional / spike only |
@@ -3207,7 +3207,7 @@ python -m pytest tests/ -q
 
 **Placeholder commit:** `feat(agent): MonitoringTracer ENTRY via PY_START`
 
-**Actual commit hash:** *(pending user commit)*
+**Actual commit hash:** `1c3aa33`
 
 **Actual commit message:**
 
@@ -3228,9 +3228,43 @@ feat(agent): MonitoringTracer ENTRY via PY_START
 
 | Field | Detail |
 |-------|--------|
-| **Status** | ⬜ todo |
-| **Files** | `agent/monitoring_tracer.py`, extend tests from `test_tracer_global.py` pattern |
+| **Status** | ✅ done |
+| **Branch** | `feat/monitoring-tracer` |
+| **Files** | `agent/monitoring_tracer.py`, `tests/test_monitoring_tracer.py` |
 | **Done when** | RETURN/BOTH and file_line parity with v1 for add request |
+
+**Delivered:**
+
+- `on_py_return` — function/method RETURN/BOTH via `_frame_return_bps`; file_line RETURN/BOTH
+- `on_line` — file_line ENTRY/BOTH at exact line via scoped `set_local_events(LINE | PY_RETURN)`
+- Tier-2: local watch enabled on PY_START when watched file or RETURN/BOTH needed (mirrors settrace local trace)
+- `tests/test_monitoring_tracer.py` — +5 tests (RETURN, file_line ENTRY/BOTH, combined method+line); 13 total
+
+**Verification:**
+
+```powershell
+python -m pytest tests/test_monitoring_tracer.py -q
+# → 13 passed in ~0.31s
+python -m pytest tests/ -q
+# → 191 passed
+```
+
+**Placeholder commit:** `feat(agent): MonitoringTracer RETURN and file_line events`
+
+**Actual commit hash:** *(pending user commit)*
+
+**Actual commit message:**
+
+```text
+feat(agent): MonitoringTracer RETURN and file_line events
+
+- Add on_py_return for function/method RETURN/BOTH and file_line RETURN/BOTH
+- Add on_line with scoped set_local_events on watched code objects
+- Track return breakpoints per frame; mirror Tracer _capture_file_line_hits logic
+- Extend tests/test_monitoring_tracer.py (+5 tests, 13 total)
+- Update TASK_CHECKLIST.md (16.1 commit 1c3aa33) and CONTEXT.md
+- Verified: monitoring tracer 13 passed; full suite 191 passed
+```
 
 ---
 
@@ -3306,4 +3340,4 @@ On **`hyperprobe-v2`**, PR-15 is **not required** for experiments. When submitti
 
 ---
 
-*Last updated: 2026-06-18 — PR-17 task 16.1 MonitoringTracer ENTRY; PR-16 merged `ad247c9`*
+*Last updated: 2026-06-18 — PR-17 task 16.2 RETURN/file_line; 16.1 committed `1c3aa33`*
