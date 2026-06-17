@@ -572,20 +572,25 @@ Append newest entries at the **top**.
 
 ---
 
-### 2026-06-18 — v2 task 16.3 complete (local)
+### 2026-06-18 — v2 task 17.1 complete (local)
 
-- Wired `MonitoringTracer` into `bootstrap.py`; removed stub callbacks
-- `docker-compose.yml` defaults to `HYPERPROBE_BACKEND=monitoring`
-- `test_bootstrap_monitoring_backend_calculate_produces_snapshot` — end-to-end snapshot under monitoring
-- Recorded task 16.2 commit `fcba924`
-- Verified: bootstrap 8 passed; full suite 192 passed
-- Next: open PR-17 on hyperprobe-v2
+- Added `tests/test_monitoring_parity.py` — settrace vs monitoring on same calculate request (3 tests)
+- PR-17 merged: PR #2 `57b401c`
+- Verified: parity 3 passed; full suite 195 passed
+- Next: task 17.2 (concurrency under monitoring)
+
+### 2026-06-18 — v2 PR-17 merged (`57b401c`)
+
+- PR #2 on hyperprobe-v2; commits `1c3aa33`, `fcba924`, `505ec30`
+
+### 2026-06-18 — v2 task 16.3 committed (`505ec30`); PR-17 draft ready
+
+- Pushed bootstrap MonitoringTracer wiring; CI green
+- PR-17 full GitHub body in TASK_CHECKLIST.md § task 16.3
+- Commits: `1c3aa33`, `fcba924`, `505ec30`
+- Next: open PR `feat/monitoring-tracer` → `main`
 
 ### 2026-06-18 — v2 task 16.2 committed (`fcba924`)
-
-- Pushed RETURN/file_line MonitoringTracer; CI green
-
-### 2026-06-18 — v2 task 16.2 complete (local)
 
 - Extended `MonitoringTracer` — `on_py_return`, `on_line`, scoped `set_local_events` for tier-2
 - RETURN/BOTH function/method + file_line ENTRY/BOTH/RETURN parity with v1 tracer tests
@@ -652,17 +657,15 @@ Append newest entries at the **top**.
 
 ## Git workflow
 
-**PR-17** ready on `feat/monitoring-tracer` — tasks 16.1–16.3 done; open PR, then branch `test/monitoring-parity` for PR-18.
+**PR-18** on `test/monitoring-parity` — task 17.1 done; next 17.2.
 
-**PR-16** merged on hyperprobe-v2: PR #1 (`ad247c9`).
+**PR-17** merged (`57b401c`). **PR-16** merged (`ad247c9`).
 
 ```powershell
 git checkout main
 git pull origin main
-git checkout -b feat/monitoring-tracer   # already on branch
+git checkout -b test/monitoring-parity
 ```
-
-PR-12 merged (`6e9b773`). PR-13/14 merged on submission track.
 
 After each PR merges: `git checkout main` → `git pull origin main` → new feature branch.
 
