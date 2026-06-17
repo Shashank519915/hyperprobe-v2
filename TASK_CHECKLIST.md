@@ -29,7 +29,7 @@ Plan reference: `notes/IMPLEMENTATION_PLAN.md` · Design: `notes/ARCHITECTURE_V2
 | PR-14 | `test/concurrency` | 13.1–13.2 | 2/2 | ✅ merged |
 | PR-15 | `docs/readme` | 14.1 | 0/1 | 🔄 ready (local README; **submit on `hyperprobe` repo**, not v2) |
 | PR-16 | `feat/monitoring-backend` | 15.1–15.4 | 4/4 | ✅ merged (PR #1, `ad247c9`) |
-| PR-17 | `feat/monitoring-tracer` | 16.1–16.3 | 2/3 | 🔄 in progress |
+| PR-17 | `feat/monitoring-tracer` | 16.1–16.3 | 3/3 | 🔄 ready for PR |
 | PR-18 | `test/monitoring-parity` | 17.1–17.2 | 0/2 | ⬜ todo |
 | PR-19 | `research/deque-queue` | 18.1 | 0/1 | ⬜ optional |
 | PR-20 | `research/import-hook` | 19.1 | 0/1 | ⬜ optional / spike only |
@@ -3251,7 +3251,7 @@ python -m pytest tests/ -q
 
 **Placeholder commit:** `feat(agent): MonitoringTracer RETURN and file_line events`
 
-**Actual commit hash:** *(pending user commit)*
+**Actual commit hash:** `fcba924`
 
 **Actual commit message:**
 
@@ -3272,11 +3272,66 @@ feat(agent): MonitoringTracer RETURN and file_line events
 
 | Field | Detail |
 |-------|--------|
-| **Status** | ⬜ todo |
-| **Files** | `agent/bootstrap.py`, `docker-compose.yml`, `README.md` (v2 section) |
+| **Status** | ✅ done |
+| **Branch** | `feat/monitoring-tracer` |
+| **Files** | `agent/bootstrap.py`, `docker-compose.yml`, `README.md`, `tests/test_bootstrap.py` |
 | **Done when** | v2 demo runs with `HYPERPROBE_BACKEND=monitoring`; snapshots still produced |
 
-**PR-17 merge checklist:** parity smoke + `pytest tests/ -q`
+**Delivered:**
+
+- `bootstrap.py` — monitoring path uses `MonitoringTracer` + `activate_global_events`; shutdown deactivates events
+- `AgentRuntime.tracer` — `Tracer | MonitoringTracer`; removed stub callbacks
+- `docker-compose.yml` — default `HYPERPROBE_BACKEND: monitoring` for v2 demo
+- `README.md` — v2 monitoring backend env note
+- `tests/test_bootstrap.py` — `monitoring_bootstrap_stack` + end-to-end snapshot test (8 bootstrap tests)
+
+**Verification:**
+
+```powershell
+python -m pytest tests/test_bootstrap.py -q
+# → 8 passed
+python -m pytest tests/ -q
+# → 192 passed
+docker compose config
+# → HYPERPROBE_BACKEND=monitoring in environment
+```
+
+**Placeholder commit:** `feat(agent): wire MonitoringTracer into bootstrap`
+
+**Actual commit hash:** *(pending user commit)*
+
+**Actual commit message:**
+
+```text
+feat(agent): wire MonitoringTracer into bootstrap
+
+- Replace monitoring stub callbacks with MonitoringTracer in start_agent
+- Deactivate global events on shutdown; AgentRuntime.tracer is Tracer | MonitoringTracer
+- docker-compose.yml defaults to HYPERPROBE_BACKEND=monitoring for v2 demo
+- Add bootstrap monitoring end-to-end snapshot test
+- README v2 monitoring backend section
+- Update TASK_CHECKLIST.md (16.2 commit fcba924) and CONTEXT.md
+- Verified: bootstrap 8 passed; full suite 192 passed
+```
+
+**PR-17 merge checklist:**
+
+- [x] Tasks 16.1–16.3 ✅ (`1c3aa33`, `fcba924`, pending 16.3)
+- [x] `HYPERPROBE_BACKEND=monitoring` produces seed-method-add snapshot (bootstrap test)
+- [x] Default `settrace` path unchanged (bootstrap_stack tests)
+- [x] Full suite 192 passed
+- [ ] Open PR `feat/monitoring-tracer` → `main` on **hyperprobe-v2**
+- [ ] Merge to `main` (PR #2 on v2)
+
+**PR title:** `feat(agent): MonitoringTracer and bootstrap wiring (PR-17)`
+
+**After merge:**
+
+```powershell
+git checkout main
+git pull origin main
+git checkout -b test/monitoring-parity
+```
 
 ---
 
@@ -3340,4 +3395,4 @@ On **`hyperprobe-v2`**, PR-15 is **not required** for experiments. When submitti
 
 ---
 
-*Last updated: 2026-06-18 — PR-17 task 16.2 RETURN/file_line; 16.1 committed `1c3aa33`*
+*Last updated: 2026-06-18 — PR-17 ready for merge (`feat/monitoring-tracer`; 16.2 `fcba924`)*

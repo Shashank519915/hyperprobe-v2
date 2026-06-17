@@ -28,6 +28,28 @@ def _wait_for_control(runtime, timeout: float = 2.0) -> None:
 
 
 @pytest.fixture
+def monitoring_bootstrap_stack(tmp_path):
+    runtime = start_agent(
+        breakpoints_path=DEFAULT_BREAKPOINTS_PATH,
+        snapshots_dir=tmp_path,
+        control_host="127.0.0.1",
+        control_port=0,
+        backend=BACKEND_MONITORING,
+    )
+    _wait_for_control(runtime)
+    server = create_server("127.0.0.1", 0)
+    port = server.server_address[1]
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield runtime, port, tmp_path
+    finally:
+        server.shutdown()
+        thread.join(timeout=2)
+        runtime.shutdown()
+
+
+@pytest.fixture
 def bootstrap_stack(tmp_path):
     runtime = start_agent(
         breakpoints_path=DEFAULT_BREAKPOINTS_PATH,
@@ -141,6 +163,45 @@ def test_start_agent_monitoring_backend_claims_tool_id(tmp_path):
         assert runtime.backend == BACKEND_MONITORING
         assert runtime.installer.is_installed
         assert sys.monitoring.get_tool(HYPERPROBE_TOOL_ID) == HYPERPROBE_TOOL_NAME
+        from agent.monitoring_tracer import MonitoringTracer
+
+        assert isinstance(runtime.tracer, MonitoringTracer)
     finally:
         runtime.shutdown()
         assert sys.monitoring.get_tool(HYPERPROBE_TOOL_ID) is None
+
+
+def test_bootstrap_monitoring_backend_calculate_produces_snapshot(
+    monitoring_bootstrap_stack,
+):
+    runtime, target_port, snapshots_dir = monitoring_bootstrap_stack
+
+    status, body = _http_get(target_port, "/calculate?op=add&a=10&b=20")
+    assert status == 200
+    assert body["result"] == 30.0
+
+    deadline = time.time() + 3.0
+    files: list = []
+    while time.time() < deadline:
+        runtime.capture_queue.join()
+        files = list(snapshots_dir.glob("*.json"))
+        if files:
+            break
+        time.sleep(0.05)
+
+    assert files, "expected snapshot JSON under monitoring backend"
+
+    payloads = [
+        json.loads(path.read_text(encoding="utf-8")) for path in files
+    ]
+    method_snapshots = [
+        item for item in payloads if item.get("breakpoint_id") == "seed-method-add"
+    ]
+    assert method_snapshots, (
+        "expected seed-method-add snapshot; got "
+        f"{[item.get('breakpoint_id') for item in payloads]}"
+    )
+
+    snapshot = method_snapshots[0]
+    qualnames = {frame.get("qualname") for frame in snapshot["stack_frames"]}
+    assert "AdditionEngine.add" in qualnames

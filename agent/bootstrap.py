@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import queue
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -21,6 +20,7 @@ from agent.monitoring_installer import (
     install_monitoring,
     remove_monitoring,
 )
+from agent.monitoring_tracer import MonitoringTracer
 from agent.registry import BreakpointRegistry
 from agent.tracer import Tracer
 from agent.worker import SnapshotWorker, create_capture_queue
@@ -56,21 +56,6 @@ def resolve_instrumentation_backend(
     )
 
 
-def _monitoring_stub_callbacks() -> dict[int, object]:
-    """Placeholder callbacks until MonitoringTracer wires real handlers (PR-17)."""
-
-    def _noop_py_start(code, instruction_offset: int) -> None:
-        return None
-
-    def _noop_py_return(code, instruction_offset: int, retval: object) -> None:
-        return None
-
-    return {
-        sys.monitoring.events.PY_START: _noop_py_start,
-        sys.monitoring.events.PY_RETURN: _noop_py_return,
-    }
-
-
 @dataclass
 class AgentRuntime:
     """Wired agent components — worker, control API, and instrumentation hooks."""
@@ -78,7 +63,7 @@ class AgentRuntime:
     registry: BreakpointRegistry
     capture_queue: queue.Queue
     worker: SnapshotWorker
-    tracer: Tracer
+    tracer: Tracer | MonitoringTracer
     control_server: AgentControlServer
     backend: str
     installer: TraceInstaller | MonitoringInstaller
@@ -87,6 +72,8 @@ class AgentRuntime:
         self.control_server.stop()
         self.worker.stop()
         if self.backend == BACKEND_MONITORING:
+            if isinstance(self.tracer, MonitoringTracer):
+                self.tracer.deactivate_global_events()
             remove_monitoring(self.installer)  # type: ignore[arg-type]
         else:
             remove_trace(self.installer)  # type: ignore[arg-type]
@@ -114,11 +101,14 @@ def start_agent(
     )
     worker.start()
 
-    tracer = Tracer(registry, capture_queue)
     if resolved_backend == BACKEND_MONITORING:
-        installer = install_monitoring(_monitoring_stub_callbacks())
+        monitoring_tracer = MonitoringTracer(registry, capture_queue)
+        installer = install_monitoring(monitoring_tracer.callbacks())
+        monitoring_tracer.activate_global_events()
+        active_tracer: Tracer | MonitoringTracer = monitoring_tracer
     else:
-        installer = install_trace(tracer.global_trace)
+        active_tracer = Tracer(registry, capture_queue)
+        installer = install_trace(active_tracer.global_trace)
 
     control_server = AgentControlServer(
         registry,
@@ -131,7 +121,7 @@ def start_agent(
         registry=registry,
         capture_queue=capture_queue,
         worker=worker,
-        tracer=tracer,
+        tracer=active_tracer,
         control_server=control_server,
         backend=resolved_backend,
         installer=installer,

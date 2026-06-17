@@ -572,6 +572,19 @@ Append newest entries at the **top**.
 
 ---
 
+### 2026-06-18 — v2 task 16.3 complete (local)
+
+- Wired `MonitoringTracer` into `bootstrap.py`; removed stub callbacks
+- `docker-compose.yml` defaults to `HYPERPROBE_BACKEND=monitoring`
+- `test_bootstrap_monitoring_backend_calculate_produces_snapshot` — end-to-end snapshot under monitoring
+- Recorded task 16.2 commit `fcba924`
+- Verified: bootstrap 8 passed; full suite 192 passed
+- Next: open PR-17 on hyperprobe-v2
+
+### 2026-06-18 — v2 task 16.2 committed (`fcba924`)
+
+- Pushed RETURN/file_line MonitoringTracer; CI green
+
 ### 2026-06-18 — v2 task 16.2 complete (local)
 
 - Extended `MonitoringTracer` — `on_py_return`, `on_line`, scoped `set_local_events` for tier-2
@@ -639,7 +652,7 @@ Append newest entries at the **top**.
 
 ## Git workflow
 
-**PR-17** in progress on `feat/monitoring-tracer` — tasks 16.1–16.2 done; next 16.3 bootstrap wiring.
+**PR-17** ready on `feat/monitoring-tracer` — tasks 16.1–16.3 done; open PR, then branch `test/monitoring-parity` for PR-18.
 
 **PR-16** merged on hyperprobe-v2: PR #1 (`ad247c9`).
 

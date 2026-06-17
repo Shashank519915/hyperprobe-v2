@@ -9,4 +9,4 @@ services:
       - ./snapshots:/app/snapshots
     environment:
       EMIT_STDOUT: "1"
-      # HYPERPROBE_BACKEND: monitoring  # opt-in; default settrace until PR-17 tracer
+      HYPERPROBE_BACKEND: monitoring  # v2 default; set settrace to use sys.settrace path
