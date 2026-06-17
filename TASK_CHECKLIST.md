@@ -28,7 +28,7 @@ Plan reference: `notes/IMPLEMENTATION_PLAN.md` · Design: `notes/ARCHITECTURE_V2
 | PR-13 | `chore/ci-hardening` | 12.2–12.3 | 2/2 | ✅ merged |
 | PR-14 | `test/concurrency` | 13.1–13.2 | 2/2 | ✅ merged |
 | PR-15 | `docs/readme` | 14.1 | 0/1 | 🔄 ready (local README; **submit on `hyperprobe` repo**, not v2) |
-| PR-16 | `feat/monitoring-backend` | 15.1–15.4 | 2/4 | 🔄 in progress |
+| PR-16 | `feat/monitoring-backend` | 15.1–15.4 | 3/4 | 🔄 in progress |
 | PR-17 | `feat/monitoring-tracer` | 16.1–16.3 | 0/3 | ⬜ todo |
 | PR-18 | `test/monitoring-parity` | 17.1–17.2 | 0/2 | ⬜ todo |
 | PR-19 | `research/deque-queue` | 18.1 | 0/1 | ⬜ optional |
@@ -2936,17 +2936,20 @@ python -m pytest tests/test_monitoring_spike.py -q
 
 **Placeholder commit:** `test(agent): add sys.monitoring spike`
 
-**Actual commit hash:** *(pending user commit)*
+**Actual commit hash:** `b6a361d`
 
 **Actual commit message:**
 
 ```text
 test(agent): add sys.monitoring spike
 
-- Document PEP 669 tool_id setup and event subscription in notes/MONITORING_SPIKE.md
-- Minimal callback test on AdditionEngine.add target code path
-- Assert PY_START/PY_RETURN fire; local events ignore unscoped functions
-- Verified: python -m pytest tests/test_monitoring_spike.py -q → 2 passed
+Prove PEP 669 PY_START/PY_RETURN callbacks fire on AdditionEngine.add via set_local_events.
+
+- Add tests/test_monitoring_spike.py (2 tests)
+- Update TASK_CHECKLIST.md task 15.1 status and verification
+- Update CONTEXT.md progress log
+- Local spike notes: notes/MONITORING_SPIKE.md (gitignored)
+- Verified: spike 2 passed; full suite 165 passed
 ```
 
 **Git (after task):**
@@ -2994,18 +2997,21 @@ python -m pytest tests/ -q
 
 **Placeholder commit:** `feat(agent): add sys.monitoring installer`
 
-**Actual commit hash:** *(pending user commit)*
+**Actual commit hash:** `d318056`
 
 **Actual commit message:**
 
 ```text
 feat(agent): add sys.monitoring installer
 
-- Add MonitoringInstaller with install_monitoring/remove_monitoring helpers
-- Claim shared DEBUGGER_ID tool slot; register wrapped event callbacks
-- Add disable_monitoring_on_current_thread for R24 agent-thread isolation
+Add MonitoringInstaller parallel to TraceInstaller for PEP 669 backend.
+
+- install_monitoring/remove_monitoring claim DEBUGGER_ID and register event callbacks
+- disable_monitoring_on_current_thread uses thread-local flag (R24 parity)
+- Callbacks wrapped to no-op on disabled agent threads
 - Add tests/test_monitoring_installer.py (8 tests)
-- Verified: installer tests 8 passed; full suite 173 passed
+- Update TASK_CHECKLIST.md and CONTEXT.md
+- Verified: installer 8 passed; full suite 173 passed
 ```
 
 ---
@@ -3014,21 +3020,54 @@ feat(agent): add sys.monitoring installer
 
 | Field | Detail |
 |-------|--------|
-| **Status** | ⬜ todo |
+| **Status** | ✅ done |
 | **Branch** | `feat/monitoring-backend` |
-| **Files** | `agent/bootstrap.py`, `docker-compose.yml` (env) |
+| **Files** | `agent/bootstrap.py`, `agent/worker.py`, `agent/control_server.py`, `docker-compose.yml`, `tests/test_bootstrap.py` |
 | **Done when** | `HYPERPROBE_BACKEND=settrace|monitoring` selects installer; default `settrace` until tracer ported |
+
+**Delivered:**
+
+- `resolve_instrumentation_backend()` — `HYPERPROBE_BACKEND=settrace|monitoring`, default `settrace`
+- `start_agent(..., backend=)` — settrace → `install_trace`; monitoring → `install_monitoring` stub callbacks (PR-17 wires real tracer)
+- `AgentRuntime.backend` + shutdown dispatches `remove_trace` / `remove_monitoring`
+- Worker + control server call both `disable_tracing_on_current_thread()` and `disable_monitoring_on_current_thread()` (R24)
+- `docker-compose.yml` — commented opt-in `HYPERPROBE_BACKEND: monitoring`
+- `tests/test_bootstrap.py` — 5 backend-selection tests
 
 **Env:** `HYPERPROBE_BACKEND=monitoring` (opt-in)
 
+**Verification:**
+
+```powershell
+python -m pytest tests/test_bootstrap.py -q
+# → 7 passed
+python -m pytest tests/ -q
+# → 178 passed (default settrace unchanged)
+```
+
 **Placeholder commit:** `feat(agent): add instrumentation backend env switch`
+
+**Actual commit hash:** *(pending user commit)*
+
+**Actual commit message:**
+
+```text
+feat(agent): add instrumentation backend env switch
+
+- HYPERPROBE_BACKEND=settrace|monitoring selects TraceInstaller vs MonitoringInstaller
+- Default settrace; monitoring uses stub callbacks until PR-17 MonitoringTracer
+- Wire disable_monitoring_on_current_thread in worker and control server (R24)
+- Add bootstrap backend tests; document opt-in env in docker-compose.yml
+- Update TASK_CHECKLIST.md and CONTEXT.md
+- Verified: bootstrap 7 passed; full suite 178 passed
+```
 
 ---
 
 ### Task 15.4 — PR-16 merge checklist + PR draft
 
 - [ ] Tasks 15.1–15.3 ✅
-- [ ] All 163 existing tests still pass with default backend
+- [ ] All 178 tests still pass with default backend
 - [ ] CI green
 - [ ] Open PR `feat/monitoring-backend` → `main` on **hyperprobe-v2**
 

@@ -572,6 +572,17 @@ Append newest entries at the **top**.
 
 ---
 
+### 2026-06-18 — v2 task 15.3 complete (local)
+
+- `HYPERPROBE_BACKEND=settrace|monitoring` in `agent/bootstrap.py`; default `settrace`
+- Monitoring path uses stub callbacks until PR-17 `MonitoringTracer`
+- Worker + control server call both trace and monitoring thread disables (R24)
+- `docker-compose.yml` documents opt-in monitoring env (commented)
+- `tests/test_bootstrap.py` — 5 backend tests added (7 total)
+- Recorded committed hashes: task 15.1 `b6a361d`, task 15.2 `d318056`
+- Verified: `python -m pytest tests/test_bootstrap.py -q` → 7 passed; full suite 178 passed
+- Next: task 15.4 (PR-16 merge checklist + open PR)
+
 ### 2026-06-18 — v2 task 15.2 complete (local)
 
 - Added `agent/monitoring_installer.py` — `MonitoringInstaller`, `install_monitoring` / `remove_monitoring`, `disable_monitoring_on_current_thread`
