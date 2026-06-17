@@ -572,6 +572,41 @@ Append newest entries at the **top**.
 
 ---
 
+### 2026-06-18 — v2 task 16.3 complete (local)
+
+- Wired `MonitoringTracer` into `bootstrap.py`; removed stub callbacks
+- `docker-compose.yml` defaults to `HYPERPROBE_BACKEND=monitoring`
+- `test_bootstrap_monitoring_backend_calculate_produces_snapshot` — end-to-end snapshot under monitoring
+- Recorded task 16.2 commit `fcba924`
+- Verified: bootstrap 8 passed; full suite 192 passed
+- Next: open PR-17 on hyperprobe-v2
+
+### 2026-06-18 — v2 task 16.2 committed (`fcba924`)
+
+- Pushed RETURN/file_line MonitoringTracer; CI green
+
+### 2026-06-18 — v2 task 16.2 complete (local)
+
+- Extended `MonitoringTracer` — `on_py_return`, `on_line`, scoped `set_local_events` for tier-2
+- RETURN/BOTH function/method + file_line ENTRY/BOTH/RETURN parity with v1 tracer tests
+- `tests/test_monitoring_tracer.py` — 13 tests total (+5)
+- Recorded task 16.1 commit `1c3aa33`
+- Verified: monitoring tracer 13 passed; full suite 191 passed
+- Next: task 16.3 (wire MonitoringTracer into bootstrap)
+
+### 2026-06-18 — v2 task 16.1 committed (`1c3aa33`)
+
+- Pushed `feat(agent): MonitoringTracer ENTRY via PY_START`; CI green
+
+### 2026-06-18 — v2 task 16.1 complete (local)
+
+- Branch: `feat/monitoring-tracer`
+- Added `agent/monitoring_tracer.py` — `MonitoringTracer.on_py_start` ENTRY capture via global PY_START
+- Added `tests/test_monitoring_tracer.py` — 8 tests (function/method ENTRY, BOTH call leg, worker JSON)
+- PR-16 merged on main: PR #1 `ad247c9`
+- Verified: `python -m pytest tests/test_monitoring_tracer.py -q` → 8 passed; full suite 186 passed
+- Next: task 16.2 (PY_RETURN + LINE for RETURN/BOTH and file_line)
+
 ### 2026-06-18 — v2 task 15.4 complete; PR-16 ready
 
 - PR-16 merge checklist + GitHub PR draft filled in `TASK_CHECKLIST.md`
@@ -617,12 +652,14 @@ Append newest entries at the **top**.
 
 ## Git workflow
 
-**PR-16** ready on `feat/monitoring-backend` (hyperprobe-v2) — open PR, merge, then:
+**PR-17** ready on `feat/monitoring-tracer` — tasks 16.1–16.3 done; open PR, then branch `test/monitoring-parity` for PR-18.
+
+**PR-16** merged on hyperprobe-v2: PR #1 (`ad247c9`).
 
 ```powershell
 git checkout main
 git pull origin main
-git checkout -b feat/monitoring-tracer
+git checkout -b feat/monitoring-tracer   # already on branch
 ```
 
 PR-12 merged (`6e9b773`). PR-13/14 merged on submission track.
