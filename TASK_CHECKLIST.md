@@ -28,8 +28,8 @@ Plan reference: `notes/IMPLEMENTATION_PLAN.md` · Design: `notes/ARCHITECTURE_V2
 | PR-13 | `chore/ci-hardening` | 12.2–12.3 | 2/2 | ✅ merged |
 | PR-14 | `test/concurrency` | 13.1–13.2 | 2/2 | ✅ merged |
 | PR-15 | `docs/readme` | 14.1 | 0/1 | 🔄 ready (local README; **submit on `hyperprobe` repo**, not v2) |
-| PR-16 | `feat/monitoring-backend` | 15.1–15.4 | 4/4 | 🔄 ready for PR |
-| PR-17 | `feat/monitoring-tracer` | 16.1–16.3 | 0/3 | ⬜ todo |
+| PR-16 | `feat/monitoring-backend` | 15.1–15.4 | 4/4 | ✅ merged (PR #1, `ad247c9`) |
+| PR-17 | `feat/monitoring-tracer` | 16.1–16.3 | 1/3 | 🔄 in progress |
 | PR-18 | `test/monitoring-parity` | 17.1–17.2 | 0/2 | ⬜ todo |
 | PR-19 | `research/deque-queue` | 18.1 | 0/1 | ⬜ optional |
 | PR-20 | `research/import-hook` | 19.1 | 0/1 | ⬜ optional / spike only |
@@ -3088,8 +3088,8 @@ python scripts/target_purity_check.py
 - [x] All 178 tests pass with default backend (`settrace`)
 - [x] Target purity OK
 - [x] CI green on branch (user verified after 15.3 push)
-- [ ] Open PR `feat/monitoring-backend` → `main` on **hyperprobe-v2**
-- [ ] Merge to `main` (will be PR #16 on v2)
+- [x] Open PR `feat/monitoring-backend` → `main` on **hyperprobe-v2**
+- [x] Merge to `main` (PR #1, `ad247c9`)
 
 **Git — open PR (branch already pushed):**
 
@@ -3182,12 +3182,45 @@ Port `Tracer` logic to monitoring callbacks (or new `MonitoringTracer` class).
 
 | Field | Detail |
 |-------|--------|
-| **Status** | ⬜ todo |
+| **Status** | ✅ done |
 | **Branch** | `feat/monitoring-tracer` |
-| **Files** | `agent/monitoring_tracer.py`, reuse `capture.py` / `enqueue_capture` |
+| **Files** | `agent/monitoring_tracer.py`, `tests/test_monitoring_tracer.py` |
 | **Done when** | Function/method ENTRY breakpoints enqueue RawCapture via monitoring events |
 
+**Delivered:**
+
+- `agent/monitoring_tracer.py` — `MonitoringTracer` with global `PY_START` tier-1 filter
+- `on_py_start` maps `code` → frame via `sys._getframe`; registry CALL matching; `capture_raw` + `enqueue_capture`
+- ENTRY and BOTH (CALL leg only); RETURN mode deferred to task 16.2
+- `tests/test_monitoring_tracer.py` — 8 tests (function, method, multi-BP, target `AdditionEngine.add`, worker JSON)
+
 **Note:** Monitoring gives code object — map to registry same as settrace `co_name` / `co_qualname`.
+
+**Verification:**
+
+```powershell
+python -m pytest tests/test_monitoring_tracer.py -q
+# → 8 passed in ~0.24s
+python -m pytest tests/ -q
+# → 186 passed
+```
+
+**Placeholder commit:** `feat(agent): MonitoringTracer ENTRY via PY_START`
+
+**Actual commit hash:** *(pending user commit)*
+
+**Actual commit message:**
+
+```text
+feat(agent): MonitoringTracer ENTRY via PY_START
+
+- Add MonitoringTracer with global PY_START tier-1 filter and on_py_start handler
+- Map code object to frame; function/method ENTRY and BOTH (CALL leg) enqueue RawCapture
+- Reuse capture_raw and enqueue_capture unchanged
+- Add tests/test_monitoring_tracer.py (8 tests)
+- Update TASK_CHECKLIST.md and CONTEXT.md
+- Verified: monitoring tracer 8 passed; full suite 186 passed
+```
 
 ---
 
@@ -3273,4 +3306,4 @@ On **`hyperprobe-v2`**, PR-15 is **not required** for experiments. When submitti
 
 ---
 
-*Last updated: 2026-06-18 — PR-16 ready for merge on hyperprobe-v2 (`feat/monitoring-backend`; commits b6a361d → ca4bd7c)*
+*Last updated: 2026-06-18 — PR-17 task 16.1 MonitoringTracer ENTRY; PR-16 merged `ad247c9`*
