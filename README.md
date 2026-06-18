@@ -1,6 +1,6 @@
 # HyperProbe v2 PoC
 
-A runtime instrumentation proof-of-concept. The **target** (`target/`) is a plain HTTP calculator - handler, service, and engine layers, no observability code. The **agent** (`agent/`) attaches from outside at process start, registers breakpoints, and writes JSON snapshots when those breakpoints fire.
+A runtime instrumentation proof-of-concept. The **target** (`target/`) is a plain HTTP calculator - handler, service, and engine layers, no observability code. The **agent** (`agent/`) attaches from outside at process start, registers breakpoints, and writes JSON snapshots when those breakpoints fire. Docker defaults to `sys.monitoring`.
 
 Python 3.12 · calculator on `:8080` · agent control API on `:9090`
 
@@ -11,8 +11,8 @@ Python 3.12 · calculator on `:8080` · agent control API on `:9090`
 You only need Docker. No local Python install required. Install Docker Desktop Signin/Signup. Keep the Docker Engine running in Docker Desktop.
 
 ```bash
-git clone https://github.com/Shashank519915/hyperprobe.git
-cd hyperprobe
+git clone https://github.com/Shashank519915/hyperprobe-v2.git
+cd hyperprobe-v2
 docker compose up --build
 ```
 
@@ -48,7 +48,7 @@ curl "http://localhost:8080/calculate?op=pow&a=2&b=3"
 Every request goes through 3 application layers:
 
 do_GET (target/server.py) → handle_calculate (target/handlers.py) → MathService.compute (target/services/math_service.py) → engine e.g. AdditionEngine.add (target/engines/addition.py)
-An `add` request hits all three seed breakpoints. div,mul,sub / unsupported ops only hit the function breakpoint on compute as set in the breakpoint.yaml essentially.
+An `add` request hits all three seed breakpoints. div,mul,sub / unsupported ops only hit the function breakpoint on compute as set in the breakpoints.yaml essentially.
 
 ---
 
@@ -174,8 +174,6 @@ curl "http://localhost:8080/calculate?op=add&a=5&b=7"
 ```
 
 A new snapshot file appears immediately. No restart. The tracer picks it up on the next matching call.
-
-Three breakpoint types are supported:
 
 Three breakpoint types are supported:
 `function` matches on -> any function named `value` -> like `"value": "compute"`
